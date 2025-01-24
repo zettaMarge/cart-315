@@ -18,5 +18,4 @@ Messed around with the generated HTML/css/Javascript to add a pretty start butto
 - Pretty much everyone always used the same wheel after (re)wedging the clay, but were pleasantly surprised when I pointed out that the game remembered which wheel was used and putting the avatar back next to the right seat
 - Despite the door (intentionally) being the same color as the walls (as opposed to the interactable green sprites), someone still immediately went for it first thing into the game and got to the end screen lol
 
-<a href="https://zettamarge.github.io/cart-315/Projects/1_TinyGame/POTTERY_GOBLIN.html" target="_blank">Play the game here!</a>
-
+[Play the game here!](https://zettamarge.github.io/cart-315/Projects/1_TinyGame/POTTERY_GOBLIN.html){:target="_blank"}
