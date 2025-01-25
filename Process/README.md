@@ -19,3 +19,9 @@ Messed around with the generated HTML/css/Javascript to add a pretty start butto
 - Despite the door (intentionally) being the same color as the walls (as opposed to the interactable green sprites), someone still immediately went for it first thing into the game and got to the end screen lol
 
 [Play the game here!](https://zettamarge.github.io/cart-315/Projects/1_TinyGame/POTTERY_GOBLIN.html)
+
+## Week 2: Intro to Unity (01-23-25 to 01-29-25)
+ahhhh the basics. rly takes me back to my cegep days. still getting enumerator/able mixed up oops
+
+### TODO
+Experiment w/ movement, colliders, physics materials, etc. Could just do a mini platformer thing
