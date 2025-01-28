@@ -25,3 +25,6 @@ ahhhh the basics. rly takes me back to my cegep days. still getting enumerator/a
 
 ### TODO
 Experiment w/ movement, colliders, physics materials, etc. Could just do a mini platformer thing
+
+### Dev Notes
+Going w/ a Jetpac (1983) recreation instead. Having some issue making the raycast + lineRenderer work (nts: check values during play mode to see how to fix + keep script in PlayerControl)
