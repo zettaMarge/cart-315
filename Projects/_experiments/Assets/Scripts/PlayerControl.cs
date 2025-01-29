@@ -1,4 +1,5 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerControl : MonoBehaviour
@@ -10,29 +11,42 @@ public class PlayerControl : MonoBehaviour
     private float _thrust = 3;
 
     [SerializeField]
+    private int _maxNbLasers = 5;
+
+    [SerializeField]
     private GameObject _laserPrefab;
 
-    private float _halfHorzExtent;
-    private int _maxNbLasers = 5;
+    [SerializeField]
+    private GameObject _alienSpawnerObj;
+
+    private Vector3 _startPos;
+    private float _halfCameraHorzDist;
+    private int _nbLasers = 0;
     private bool _isShooting = false;
+    private bool _isEnable = true;
+    private bool _isGrounded = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        _halfHorzExtent = Camera.main.orthographicSize * Screen.width / Screen.height;
+        _halfCameraHorzDist = Camera.main.orthographicSize * Screen.width / Screen.height;
+        _startPos = transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
-        MovePlayer();
-        WrapScreen();
+        _nbLasers = FindObjectsByType(typeof(LaserManager), FindObjectsSortMode.None).Length;
 
-        int lasers = FindObjectsByType(typeof(LaserManager), FindObjectsSortMode.None).Length;
-
-        if (Input.GetKey(KeyCode.V) && !_isShooting && lasers <= _maxNbLasers)
+        if (_isEnable)
         {
-            StartCoroutine(Shoot());
+            MovePlayer();
+            WrapScreen();
+
+            if (Input.GetKey(KeyCode.V) && !_isShooting && _nbLasers <= _maxNbLasers)
+            {
+                StartCoroutine(Shoot());
+            }
         }
     }
 
@@ -40,7 +54,39 @@ public class PlayerControl : MonoBehaviour
     {
         if (collision.gameObject.tag == "Enemy")
         {
-            Debug.Log($"u dead");
+            //Stop the aliens from spawning & restart the game
+            _isEnable = false;
+            _isShooting = false;
+            _isGrounded = false;
+            SetVisibility(false);
+            transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y), Mathf.Abs(transform.localScale.z));
+            transform.position = _startPos;
+            _alienSpawnerObj.GetComponent<AlienSpawner>().StopAliens();
+            StartCoroutine(TryRestart());
+        }
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //Bottom of Player touches top of platform
+        if (
+            collision.gameObject.tag == "Environment" &&
+            collision.gameObject.transform.position.y + collision.gameObject.transform.localScale.y/2 <= transform.position.y - transform.localScale.y/2
+        )
+        {
+            _isGrounded = true;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        //Bottom of Player was touching top of platform
+        if (
+            collision.gameObject.tag == "Environment" &&
+            collision.gameObject.transform.position.y + collision.gameObject.transform.localScale.y / 2 <= transform.position.y - transform.localScale.y/2
+        )
+        {
+            _isGrounded = false;
         }
     }
 
@@ -53,7 +99,7 @@ public class PlayerControl : MonoBehaviour
         {
             GetComponent<Rigidbody2D>().AddForce(transform.up * _thrust);
         }
-        else
+        else if (!_isGrounded)
         {
             GetComponent<Rigidbody2D>().AddForce(-transform.up * _thrust*1.5f);
         }
@@ -82,17 +128,25 @@ public class PlayerControl : MonoBehaviour
     {
         Vector3 movementWrap = new(transform.position.x, transform.position.y, transform.position.z);
 
-        if (transform.localScale.x > 0 && movementWrap.x - transform.localScale.x / 2 > _halfHorzExtent)
+        if (transform.localScale.x > 0 && movementWrap.x - transform.localScale.x / 2 > _halfCameraHorzDist)
         {
             //facing right, wrap to left of screen
-            movementWrap.x = -_halfHorzExtent;
+            movementWrap.x = -_halfCameraHorzDist;
             transform.position = movementWrap;
         }
-        else if (transform.localScale.x < 0 && movementWrap.x - transform.localScale.x / 2 < -_halfHorzExtent)
+        else if (transform.localScale.x < 0 && movementWrap.x - transform.localScale.x / 2 < -_halfCameraHorzDist)
         {
             //facing left, wrap to right of screen
-            movementWrap.x = _halfHorzExtent;
+            movementWrap.x = _halfCameraHorzDist;
             transform.position = movementWrap;
+        }
+    }
+
+    private void SetVisibility(bool state)
+    {
+        foreach (SpriteRenderer sr in GetComponentsInChildren<SpriteRenderer>())
+        {
+            sr.enabled = state;
         }
     }
 
@@ -102,5 +156,26 @@ public class PlayerControl : MonoBehaviour
         Instantiate(_laserPrefab, new Vector3(0,0,0), Quaternion.identity);
         yield return new WaitForSeconds(0.15f);
         _isShooting = false;
+    }
+
+    private IEnumerator TryRestart()
+    {
+        yield return new WaitForSeconds(0.5f);
+
+        int nbAliens = GameObject.FindGameObjectsWithTag("Enemy").Length;
+
+        //Only restart once everything else has despawned, otherwise wait some more
+        if (_nbLasers == 0 && nbAliens == 0)
+        {
+            SetVisibility(true);
+            _isEnable = true;
+            Object scoreManager = FindFirstObjectByType(typeof(ScoreManager));
+            scoreManager.GetComponent<ScoreManager>().ResetScore();
+            _alienSpawnerObj.GetComponent<AlienSpawner>().StartAliens();
+        }
+        else
+        {
+            StartCoroutine(TryRestart());
+        }
     }
 }

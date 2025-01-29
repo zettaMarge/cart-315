@@ -17,22 +17,20 @@ public class AlienMovement : MonoBehaviour
     private float _speed = 5;
 
     [SerializeField]
-    private float _angle = 0;
-
-    [SerializeField]
     private float _angleModifier = 0.1f;
 
     [SerializeField]
     private float _heightModifier = 3;
 
-    private float halfHorzExtent;
+    private float _angle = 0;
+    private float _halfCameraHorzDist;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        halfHorzExtent = Camera.main.orthographicSize * Screen.width / Screen.height;
+        _halfCameraHorzDist = Camera.main.orthographicSize * Screen.width / Screen.height;
 
-        //Randomize whether the movement will be in a wave or not
+        //Randomize which type of movement is used
         _pattern = (FlightPattern)UnityEngine.Random.Range(0,3);
 
         if (_pattern == FlightPattern.Wave)
@@ -76,15 +74,15 @@ public class AlienMovement : MonoBehaviour
                 movement.y -= Math.Abs(_speed)/2 * Time.deltaTime;
                 break;
             }
-            default: break;
+            default: break; //Just fly straight ahead
         }
 
         transform.position = movement;
 
         //Handle offscreen despawn
         if (
-            (_speed > 0 && movement.x - transform.localScale.x/2 > halfHorzExtent) ||
-            (_speed < 0 && movement.x + transform.localScale.x/2 < -halfHorzExtent)
+            (_speed > 0 && movement.x - transform.localScale.x/2 > _halfCameraHorzDist) ||
+            (_speed < 0 && movement.x + transform.localScale.x/2 < -_halfCameraHorzDist)
         )
         {
             Destroy(gameObject);
@@ -93,6 +91,7 @@ public class AlienMovement : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        //Handle environemnt collision despawn
         if (collision.gameObject.tag == "Environment")
         {
             Destroy(gameObject);

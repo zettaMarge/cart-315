@@ -5,6 +5,7 @@ public class ScoreManager : MonoBehaviour
 {
     [SerializeField]
     private TextMeshProUGUI _scoreUITxt;
+
     private int _score = 0;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -22,5 +23,10 @@ public class ScoreManager : MonoBehaviour
     public void AddScore(int incr)
     {
         _score += incr;
+    }
+
+    public void ResetScore()
+    {
+        _score = 0;
     }
 }

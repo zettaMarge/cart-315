@@ -8,10 +8,12 @@ public class LaserManager : MonoBehaviour
     private float _laserLength = 3f;
 
     private float _timer = 0.5f;
+    private float _castWidth = 0.5f;
+
+    //Offsets for the laser to spawn in front of the Player's hand
     private float _xrOffset = 0.35f;
     private float _xlOffset = -0.34f;
     private float _yOffset = 0.11f;
-    private float _castWidth = 0.5f;
 
     private LineRenderer _laserLineRenderer;
     private GameObject _player;
@@ -37,12 +39,14 @@ public class LaserManager : MonoBehaviour
         _direction = _player.transform.localScale.x > 0 ? new Vector3(1, 0, 0) : new Vector3(-1, 0, 0);
 
         _p1 = new(
+            //Use the correct offset if the player faces right or left
             _player.transform.position.x + (_direction.x > 0 ? _xrOffset : _xlOffset),
             _player.transform.position.y + _yOffset,
             _player.transform.position.z
         );
 
         _p2 = new(
+            //Use the correct offset if the player faces right or left
             _player.transform.position.x + (_direction.x > 0 ? _xrOffset : _xlOffset) + (_laserLength * _direction.x),
             _player.transform.position.y + _yOffset,
             _player.transform.position.z
@@ -53,6 +57,7 @@ public class LaserManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        //Allows any alien that first comes into contact to be destroyed until the laser despawns on its own
         CheckLaserCollision();
     }
 
@@ -70,7 +75,6 @@ public class LaserManager : MonoBehaviour
                 scoreManager.GetComponent<ScoreManager>().AddScore(10);
 
                 Destroy(gameObject);
-                break;
             }
         }
 
