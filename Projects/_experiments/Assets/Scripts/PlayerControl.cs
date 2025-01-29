@@ -9,7 +9,12 @@ public class PlayerControl : MonoBehaviour
     [SerializeField]
     private float _thrust = 3;
 
+    [SerializeField]
+    private GameObject _laserPrefab;
+
     private float _halfHorzExtent;
+    private int _maxNbLasers = 5;
+    private bool _isShooting = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -22,6 +27,13 @@ public class PlayerControl : MonoBehaviour
     {
         MovePlayer();
         WrapScreen();
+
+        int lasers = FindObjectsByType(typeof(LaserManager), FindObjectsSortMode.None).Length;
+
+        if (Input.GetKey(KeyCode.V) && !_isShooting && lasers <= _maxNbLasers)
+        {
+            StartCoroutine(Shoot());
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -82,5 +94,13 @@ public class PlayerControl : MonoBehaviour
             movementWrap.x = _halfHorzExtent;
             transform.position = movementWrap;
         }
+    }
+
+    private IEnumerator Shoot()
+    {
+        _isShooting = true;
+        Instantiate(_laserPrefab, new Vector3(0,0,0), Quaternion.identity);
+        yield return new WaitForSeconds(0.15f);
+        _isShooting = false;
     }
 }

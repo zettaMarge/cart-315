@@ -1,59 +1,88 @@
 using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class LaserManager : MonoBehaviour
 {
     [SerializeField]
-    private float _laserWidth = 2f;
+    private float _laserLength = 3f;
 
-    [SerializeField]
-    private float _laserLength = 5f;
+    private float _timer = 0.5f;
+    private float _xrOffset = 0.35f;
+    private float _xlOffset = -0.34f;
+    private float _yOffset = 0.11f;
+    private float _castWidth = 0.5f;
 
     private LineRenderer _laserLineRenderer;
-    private bool _isShooting = false;
-    private int _score = 0;
+    private GameObject _player;
+
+    private Vector3 _direction;
+    private Vector3 _p1;
+    private Vector3 _p2;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        _player = GameObject.Find("Player");
+
+        if (_player == null)
+        {
+            Debug.LogError("No player found, cannot spawn laser");
+            Destroy(gameObject);
+        }
+
         _laserLineRenderer = GetComponent<LineRenderer>();
         _laserLineRenderer.enabled = true;
+
+        _direction = _player.transform.localScale.x > 0 ? new Vector3(1, 0, 0) : new Vector3(-1, 0, 0);
+
+        _p1 = new(
+            _player.transform.position.x + (_direction.x > 0 ? _xrOffset : _xlOffset),
+            _player.transform.position.y + _yOffset,
+            _player.transform.position.z
+        );
+
+        _p2 = new(
+            _player.transform.position.x + (_direction.x > 0 ? _xrOffset : _xlOffset) + (_laserLength * _direction.x),
+            _player.transform.position.y + _yOffset,
+            _player.transform.position.z
+        );
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        Shoot();
+        CheckLaserCollision();
     }
 
-    private void Shoot()
+    private void CheckLaserCollision()
     {
-        //_isShooting = true;
-        Vector3 direction = transform.localScale.x > 0 ? Vector3.forward : -Vector3.forward;
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, _laserLength);
-
-        if (Input.GetKey(KeyCode.V))
+        RaycastHit2D[] hits = Physics2D.CircleCastAll(_p1, _castWidth, _direction);
+        //Check for laser collision
+        foreach (RaycastHit2D hit in hits)
         {
-            Debug.DrawLine(transform.position, transform.position + (_laserLength * direction));
-
-            //Check for laser collision
-            if (hit)
+            if (hit && hit.collider.gameObject.CompareTag("Enemy") && hit.distance <= _laserLength)
             {
-                if (hit.collider.gameObject.CompareTag("Enemy"))
-                {
-                    Destroy(hit.collider.gameObject);
-                    ++_score;
-                    Debug.Log(_score);
-                }
-            }
+                Destroy(hit.collider.gameObject);
 
-            //Actually draw the laser
-            _laserLineRenderer.SetPosition(0, transform.position);
-            _laserLineRenderer.SetPosition(1, transform.position + (_laserLength * direction));
+                Object scoreManager = FindFirstObjectByType(typeof(ScoreManager));
+                scoreManager.GetComponent<ScoreManager>().AddScore(10);
+
+                Destroy(gameObject);
+                break;
+            }
         }
 
-        //yield return new WaitForSeconds(0.25f);
+        //Actually draw the laser
+        _laserLineRenderer.SetPosition(0, _p1);
+        _laserLineRenderer.SetPosition(1, _p2);
 
-        //_isShooting = false;
+        _timer -= Time.deltaTime;
+
+        if (_timer <= 0)
+        {
+            Destroy(gameObject);
+        }
     }
 }
