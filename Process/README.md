@@ -38,4 +38,6 @@ Experiment w/ movement, colliders, physics materials, etc. Could just do a mini 
     - building + fueling the rocket, lvl transitions
     - bonus point items upon collection
     - sounds and actual sprites, better laser animation
-    - awarding the rareware coin upon getting 5000 points **:P**
+    - awarding the rareware coin upon getting 5000 points **:p**
+
+![Jetpac Prototype](./Media/P1-Jetpac.gif)

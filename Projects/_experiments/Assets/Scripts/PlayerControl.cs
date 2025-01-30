@@ -57,10 +57,11 @@ public class PlayerControl : MonoBehaviour
             //Stop the aliens from spawning & restart the game
             _isEnable = false;
             _isShooting = false;
-            _isGrounded = false;
             SetVisibility(false);
             transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x), Mathf.Abs(transform.localScale.y), Mathf.Abs(transform.localScale.z));
+            GetComponent<Rigidbody2D>().linearVelocityY = 0;
             transform.position = _startPos;
+            _isGrounded = false;
             _alienSpawnerObj.GetComponent<AlienSpawner>().StopAliens();
             StartCoroutine(TryRestart());
         }
@@ -168,10 +169,11 @@ public class PlayerControl : MonoBehaviour
         if (_nbLasers == 0 && nbAliens == 0)
         {
             SetVisibility(true);
-            _isEnable = true;
             Object scoreManager = FindFirstObjectByType(typeof(ScoreManager));
             scoreManager.GetComponent<ScoreManager>().ResetScore();
             _alienSpawnerObj.GetComponent<AlienSpawner>().StartAliens();
+            yield return new WaitForSeconds(0.5f);
+            _isEnable = true;
         }
         else
         {
