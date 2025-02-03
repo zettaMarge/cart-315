@@ -40,4 +40,24 @@ Experiment w/ movement, colliders, physics materials, etc. Could just do a mini 
     - sounds and actual sprites, better laser animation
     - awarding the rareware coin upon getting 5000 points **:p**
 
+Project found under Projects/_experiments, scene P1 (nts: do folder hierarchy per experiment)
+
 ![Jetpac Prototype](./Media/P1-Jetpac.gif)
+
+## Week 3: (01-30-25 to 02-05-25)
+Proto-Types:
+- Look/Feel (no focus on function necessarily)
+- Role (story, flowchart)
+- Implementation (actual function, no focus on look necessarily)
+- Integration (all of the above)
+
+tennis. tennis. tennis. tennis. tennis.
+
+### TODO
+pong variation. or not idk.
+
+### Dev Notes
+- pawng -> prawn -> shrimp play with bouncy ball. mantis shrimp can punch ball real good (more velocity). segmented shrimp (gameObject w/ multiple circles, see trail renderer or Vector2.MoveTowards, individual colliders might work best) w/ tank controls? (LR: rotate, UD: move) for a more swim-feel
+- bit annoying that dictionaries cant be edited from the inspector, but easy workaround using a serializable custom class
+- smooth snake movement is hard, delay rotation? yes, also add more delay per subsequent body part for maximum effect. might keep completing the rotation even if doesnt move bc otherwise its veeeeeeery tricky to manage.
+- except i actually got something that looks half decent???? just gotta keep the parts from going too far from each other now tho, but shrimp move good rn
