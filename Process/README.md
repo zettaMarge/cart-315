@@ -28,11 +28,8 @@ Experiment w/ movement, colliders, physics materials, etc. Could just do a mini 
 
 ### Dev Notes
 - Going w/ a Jetpac (1983) recreation instead. Having some issue making the raycast + lineRenderer work (nts: check values during play mode to see how to fix + keep script in PlayerControl)
-
 - Got it to work w/ a certain number of lasers at all times (hooray!!). However, raycast collision detection is too precise & doesnt work well. Research indicates to use CircleCast as replacement. Also, it looks like theres a glitchy one near the starting position when I fire repeatedly, idk if it's functional or how to remove it, but no biggie.
-
 - CircleCast addendum: the raycast would collide w/ the player, changed it to CircleCastAll and iterated to find a hit w/ an enemy.
-
 - Player death & respawn is functional, added a score and an extra platform. Satisfactory for this experiment, all thats missing for a full Jetpac recreation is:
     - lives + game over
     - building + fueling the rocket, lvl transitions
@@ -40,7 +37,7 @@ Experiment w/ movement, colliders, physics materials, etc. Could just do a mini 
     - sounds and actual sprites, better laser animation
     - awarding the rareware coin upon getting 5000 points **:p**
 
-Project found under Projects/_experiments, scene P1 (nts: do folder hierarchy per experiment)
+Project found under Projects/_experiments, asset folder P1 (nts: do folder hierarchy per experiment)
 
 ![Jetpac Prototype](./Media/P1-Jetpac.gif)
 
@@ -61,3 +58,11 @@ pong variation. or not idk.
 - bit annoying that dictionaries cant be edited from the inspector, but easy workaround using a serializable custom class
 - smooth snake movement is hard, delay rotation? yes, also add more delay per subsequent body part for maximum effect. might keep completing the rotation even if doesnt move bc otherwise its veeeeeeery tricky to manage.
 - except i actually got something that looks half decent???? just gotta keep the parts from going too far from each other now tho, but shrimp move good rn
+- just had to lower the maxDistanceDelta, easy lol
+- shrimp wrap doesnt work the same way as Jetpac's bc of the segments but isnt much trickier
+- all that left is to increase bounciness & lower the velocity back down to a threshold over time, make gravity 0 to make it floaty w some random initial force
+- could do like pawng template and have 2 shrimps trying to get the ball to the opposite side (color-code shrimps) (also keep screenwrap bc its funny)
+
+Project found under Projects/_experiments, asset folder P2
+
+[INSERT GIF HERE]
