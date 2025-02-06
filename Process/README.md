@@ -62,7 +62,8 @@ pong variation. or not idk.
 - shrimp wrap doesnt work the same way as Jetpac's bc of the segments but isnt much trickier
 - all that left is to increase bounciness & lower the velocity back down to a threshold over time, make gravity 0 to make it floaty w some random initial force
 - could do like pawng template and have 2 shrimps trying to get the ball to the opposite side (color-code shrimps) (also keep screenwrap bc its funny)
+- not sure how to slow down ball while keeping its bounciness w/ the moving players, the rotation is still a bit wonky at times but mostly all good; something to figure out at a later time i guess. other potential upgrades: actually doing the mantis punch (goes w/ better physics), baskets for the ball, eating plankton to grow bigger/longer (ie dynamically add and manage rotation of more segments)
 
 Project found under Projects/_experiments, asset folder P2
 
-[INSERT GIF HERE]
+![Prawng Prototype](./Media/P2-Prawng.gif)

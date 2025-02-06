@@ -6,6 +6,18 @@ using UnityEngine;
 public class ShrimpControl : MonoBehaviour
 {
     [SerializeField]
+    private KeyCode _forwardInput;
+
+    [SerializeField]
+    private KeyCode _turnRightInput;
+
+    [SerializeField]
+    private KeyCode _turnLeftInput;
+
+    [SerializeField]
+    private int _directionMod = 1;
+
+    [SerializeField]
     private float _moveSpeed = 5;
 
     [SerializeField]
@@ -20,29 +32,39 @@ public class ShrimpControl : MonoBehaviour
     [SerializeField]
     private GameObject _leadBodyPart;
 
-    [SerializeField]
-    private GameObject[] _otherBodyParts;
-
     [Serializable]
     public class TrailPair
     {
         public GameObject bodyPart;
         public GameObject frontPairedAnchor;
+        public Vector3 bodyInitPosition;
     }
 
     [SerializeField]
     private TrailPair[] _trailPairs;
 
+    private Vector3 _leadInitPosition;
     private bool _isMoving = false;
     private bool _lastRotationLeft = true;
     private float _halfCameraHorzDist;
     private float _halfCameraVertDist;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    private void Awake()
     {
         _halfCameraVertDist = Camera.main.orthographicSize;
         _halfCameraHorzDist = _halfCameraVertDist * Screen.width / Screen.height;
+        _leadInitPosition = _leadBodyPart.transform.position;
+
+        foreach (TrailPair pair in _trailPairs)
+        {
+            pair.bodyInitPosition = pair.bodyPart.transform.position;
+        }
+    }
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+
     }
 
     // Update is called once per frame
@@ -54,11 +76,7 @@ public class ShrimpControl : MonoBehaviour
 
     private void CheckMovementRotation()
     {
-        if (
-    Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W) ||
-    Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A) ||
-    Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D)
-)
+        if (Input.GetKey(_forwardInput) || Input.GetKey(_turnRightInput) || Input.GetKey(_turnLeftInput))
         {
             _isMoving = true;
         }
@@ -67,24 +85,24 @@ public class ShrimpControl : MonoBehaviour
             _isMoving = false;
         }
 
-        if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
+        if (Input.GetKey(_forwardInput))
         {
-            _leadBodyPart.transform.position += _leadBodyPart.transform.right * _moveSpeed * Time.deltaTime;
+            _leadBodyPart.transform.position += _leadBodyPart.transform.right * _directionMod * _moveSpeed * Time.deltaTime;
         }
 
         float deltaRot = 0;
 
-        if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
+        if (Input.GetKey(_turnLeftInput))
         {
             deltaRot = _rotSpeed * Time.deltaTime;
             _lastRotationLeft = true;
         }
-        else if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
+        else if (Input.GetKey(_turnRightInput))
         {
             deltaRot = -_rotSpeed * Time.deltaTime;
             _lastRotationLeft = false;
         }
-        else if (_isMoving && Quaternion.Angle(_otherBodyParts[_otherBodyParts.Length - 1].transform.localRotation, _leadBodyPart.transform.localRotation) > 30)
+        else if (_isMoving && Quaternion.Angle(_trailPairs[_trailPairs.Length - 1].bodyPart.transform.localRotation, _leadBodyPart.transform.localRotation) > 30)
         {
             _rotDelay = 0.25f;
 
@@ -109,7 +127,7 @@ public class ShrimpControl : MonoBehaviour
             }
         }
 
-        _leadBodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, _leadBodyPart.transform.localRotation.eulerAngles.z + deltaRot));
+        _leadBodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, _leadBodyPart.transform.localRotation.eulerAngles.z + deltaRot * _directionMod));
 
         _rotDelay = 0.25f;
         foreach (TrailPair pair in _trailPairs)
@@ -128,24 +146,24 @@ public class ShrimpControl : MonoBehaviour
         //Wrap if both head and tail are over threshold
 
         //Left-Right
-        if (_leadBodyPart.transform.position.x > _halfCameraHorzDist + extraDist && _otherBodyParts[_otherBodyParts.Length - 1].transform.position.x > _halfCameraHorzDist + extraDist)
+        if (_leadBodyPart.transform.position.x > _halfCameraHorzDist + extraDist && _trailPairs[_trailPairs.Length - 1].bodyPart.transform.position.x > _halfCameraHorzDist + extraDist)
         {
             //going right, wrap to left of screen
             deltaX = -2 * (_halfCameraHorzDist + extraDist);
         }
-        else if (_leadBodyPart.transform.position.x < -(_halfCameraHorzDist + extraDist) && _otherBodyParts[_otherBodyParts.Length - 1].transform.position.x < -(_halfCameraHorzDist + extraDist))
+        else if (_leadBodyPart.transform.position.x < -(_halfCameraHorzDist + extraDist) && _trailPairs[_trailPairs.Length - 1].bodyPart.transform.position.x < -(_halfCameraHorzDist + extraDist))
         {
             //going left, wrap to right of screen
             deltaX = 2 * (_halfCameraHorzDist + extraDist);
         }
 
         //Up-Down
-        if (_leadBodyPart.transform.position.y > _halfCameraVertDist + extraDist && _otherBodyParts[_otherBodyParts.Length - 1].transform.position.y > _halfCameraVertDist + extraDist)
+        if (_leadBodyPart.transform.position.y > _halfCameraVertDist + extraDist && _trailPairs[_trailPairs.Length - 1].bodyPart.transform.position.y > _halfCameraVertDist + extraDist)
         {
             //going up, wrap to bottom of screen
             deltaY = -2 * (_halfCameraVertDist + extraDist);
         }
-        else if (_leadBodyPart.transform.position.y < -(_halfCameraVertDist + extraDist) && _otherBodyParts[_otherBodyParts.Length - 1].transform.position.y < -(_halfCameraVertDist + extraDist))
+        else if (_leadBodyPart.transform.position.y < -(_halfCameraVertDist + extraDist) && _trailPairs[_trailPairs.Length - 1].bodyPart.transform.position.y < -(_halfCameraVertDist + extraDist))
         {
             //going down, wrap to top of screen
             deltaY = 2 * (_halfCameraVertDist + extraDist);
@@ -164,7 +182,19 @@ public class ShrimpControl : MonoBehaviour
         yield return new WaitForSeconds(_rotDelay);
         if (_isMoving)
         {
-            bodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, bodyPart.transform.localRotation.eulerAngles.z + deltaRot));
+            bodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, bodyPart.transform.localRotation.eulerAngles.z + deltaRot * _directionMod));
+        }
+    }
+
+    public void ResetPosition()
+    {
+        _leadBodyPart.transform.position = _leadInitPosition;
+        _leadBodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
+
+        foreach (TrailPair pair in _trailPairs)
+        {
+            pair.bodyPart.transform.position = pair.bodyInitPosition;
+            pair.bodyPart.transform.localRotation = Quaternion.Euler(new Vector3(0, 0, 0));
         }
     }
 }
