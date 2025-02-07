@@ -41,7 +41,7 @@ Project found under Projects/_experiments, asset folder P1 (nts: do folder hiera
 
 ![Jetpac Prototype](./Media/P1-Jetpac.gif)
 
-## Week 3: (01-30-25 to 02-05-25)
+## Week 3: Pong (01-30-25 to 02-05-25)
 Proto-Types:
 - Look/Feel (no focus on function necessarily)
 - Role (story, flowchart)
@@ -67,3 +67,14 @@ pong variation. or not idk.
 Project found under Projects/_experiments, asset folder P2
 
 ![Prawng Prototype](./Media/P2-Prawng.gif)
+
+## Week 4: Breakout (02-06-2025 to 02-12-2025)
+singletons my beloved. and beloathed. unless u love load-bearing coconuts (we love load-bearing coconuts)
+
+### TODO
+prof suggestion: prefab variation (diff colours, values, etc)
+
+breakout pinball? piano breakout? dk64randomizer dot com piano game? paper mario battle test?
+
+### Dev Notes
+x
