@@ -77,4 +77,17 @@ prof suggestion: prefab variation (diff colours, values, etc)
 breakout pinball? piano breakout? dk64randomizer dot com piano game? paper mario battle test?
 
 ### Dev Notes
-x
+- going with paper mario battle test; goal is hammer attack, should go as follows:
+    - select enemy (input check), auto move player towards enemy (no input check)
+    - when in position -> spawn hammer, start attack timer (input check)
+    - if timer = 0 && no input, small bonk (1/2 damage)
+    - if input -> rotate hammer back, change to input timer (with leeway for correct timing)
+    - if early release -> small bonk (1/2 damage)
+    - if late release -> miss (0 damage)
+    - when input release/timer end -> rotate hammer, deal damage, despawn hammer, move back to start position (no input check)
+    - if enemy has no hp -> kill
+    - when in position, if no enemy -> spawn new enemy
+    - restart
+- enemies have random HPs and colour
+- possible miss "animations": yeet or hammer fall back
+- small bonk slower rotation?
