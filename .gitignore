@@ -12,7 +12,7 @@ Temp/
 Obj/
 Logs/
 Bin/
-/[Uu]ser[Ss]ettings/
+UserSettings/
 
 # erroneous meta files
 library.meta
