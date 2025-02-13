@@ -91,3 +91,13 @@ breakout pinball? piano breakout? dk64randomizer dot com piano game? paper mario
 - enemies have random HPs and colour
 - possible miss "animations": yeet or hammer fall back
 - small bonk slower rotation?
+- works just as planned, EZ (just gotta tweak the speeds a bit but shhh, and fix the rotation back on subsequent hits)
+- for some reason sfx pitch remains at 1, even when changed in editor (NOTE its bc i added an AudioSource component directly to the gameobjects and not creating one from the dropdown menu, thats so dumb smh) (NOTE #2 ITS NOT EVEN THAT ITS JUST THAT ITS RESET TOO FAST, GOD)
+
+Project found under Projects/_experiments, asset folder P3
+
+### CREDITS
+- Bonk sfx downloaded from [here](https://www.myinstants.com/en/instant/doge-bonk-84044/)
+- other sfx generated with [Jsfx](https://sfxr.me/)
+
+![Hammer Prototype](./Media/P3-Hammer.gif)

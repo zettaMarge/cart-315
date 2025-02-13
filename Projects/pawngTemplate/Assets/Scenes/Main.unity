@@ -807,7 +807,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 34f9f34a8a0e9db4684dfb6c20618dac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bonkSfx: {fileID: 0}
+  bonkSfx: {fileID: 1161970856}
   ballSpeed: 15
   scoreL: 0
   scoreR: 0

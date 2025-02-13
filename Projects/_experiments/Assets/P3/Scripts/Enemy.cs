@@ -7,6 +7,8 @@ public class Enemy : MonoBehaviour
     private int currentHps = 0;
 
     private SpriteRenderer _sr;
+    private AudioSource _sfx;
+    private ParticleSystem _particles;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -14,7 +16,11 @@ public class Enemy : MonoBehaviour
         float h = Random.Range(0f, 1f);
         _sr = gameObject.GetComponent<SpriteRenderer>();
         _sr.color = Color.HSVToRGB(h, 0.75f, 1f);
+
         currentHps = Random.Range(1, 6);
+
+        _sfx = gameObject.GetComponent<AudioSource>();
+        _particles = gameObject.GetComponent<ParticleSystem>();
     }
 
     // Update is called once per frame
@@ -25,7 +31,8 @@ public class Enemy : MonoBehaviour
 
     private IEnumerator Kill()
     {
-        //start particles?
+        _particles.Play();
+        _sfx.Play();
 
         while (_sr.color.a > 0)
         {
@@ -33,7 +40,7 @@ public class Enemy : MonoBehaviour
             currentColor.a -= Time.deltaTime;
             _sr.color = currentColor;
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForEndOfFrame();
         }
 
         Destroy(gameObject);
