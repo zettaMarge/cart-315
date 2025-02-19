@@ -102,3 +102,23 @@ Project found under Projects/_experiments, asset folder P3
 - other sfx generated with [Jsfx](https://sfxr.me/)
 
 ![Hammer Prototype](./Media/P3-Hammer.gif)
+
+## Week 5: Winter Storm Alert (02-13-2025 to 02-19-2025)
+no class oopsie
+
+### TODO
+prof suggestion: either build on the previous experiment or be something entirely new
+
+### Dev Notes
+- busy week assignment-wise, so in case i dont have time to implement it heres a theoretical jump attack to build off of the previous experiment:
+    - add collision box over enemy (thicker) & under player (thinner)
+    - select attack type
+    - select enemy (input check), auto move player towards enemy (no input check) (same as hammer)
+    - when in position -> auto aim to arc over & land on enemy
+    - correct input timing is while OnCollisionStay2D w the 2 hitboxes, otherwise miss (1/2 damage)
+    - if successful input -> arc back in front of enemy, then move back to start position (no input check)
+    - otherwise -> complete arc down, then move back to start position (no input check)
+    - if enemy has no hp -> kill (same as hammer)
+    - when in position, if no enemy -> spawn new enemy (same as hammer)
+    - restart (same as hammer)
+- if not completed, insert prototype schematics here
