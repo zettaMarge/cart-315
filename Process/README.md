@@ -129,4 +129,4 @@ prof suggestion: either build on the previous experiment or be something entirel
 
 Project found under Projects/_experiments, asset folder P3-4
 
-![Jump Prototype](./Media/P3-Jump.gif)
+![Jump Prototype](./Media/P4-Jump.gif)
