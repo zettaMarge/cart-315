@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 
 public class AttackManager : MonoBehaviour
@@ -8,8 +9,15 @@ public class AttackManager : MonoBehaviour
     private enum State
     {
         Select,
+        Target,
         Transition,
         Attack
+    }
+
+    private enum Attack
+    {
+        Jump,
+        Hammer
     }
 
     [SerializeField]
@@ -22,7 +30,10 @@ public class AttackManager : MonoBehaviour
     private GameObject _timerBase;
 
     [SerializeField]
-    private GameObject[] _visualTimerSteps;
+    private GameObject _jumpVisualInput;
+
+    [SerializeField]
+    private GameObject[] _hammerVisualTimerSteps;
 
     [SerializeField]
     private float _inputTimerStep = 0.625f;
@@ -36,17 +47,25 @@ public class AttackManager : MonoBehaviour
     [SerializeField]
     private float _bonkSpeed = 0.15f;
 
+    [SerializeField]
+    private TextMeshProUGUI _selectedAttackTxtBox;
+
     private Vector3 _basePosition;
-    private State _currentState = State.Select;
+    private State _currentState = State.Target;
     private GameObject[] _enemies;
     private int _idSelectedEnemy = 0;
     private bool _isGettingEnemies = false;
 
+    private int _selectedAttackId = 0;
+    private bool _canAcceptJumpInput = false;
+    private bool _successfulJump = false;
+
+    private bool _inputWasHeld = false;
+
     private string _hexOffColor = "#C54343";
     private string _hexOnColor = "#85E867";
     private float _inputTimer = 0;
-    private bool _inputWasHeld = false;
-    private int _nbVisualsOn = 0;
+    private int _nbHammerVisualsOn = 0;
 
     private AudioSource _sfxBonk;
     private AudioSource _sfxCountdown;
@@ -68,15 +87,45 @@ public class AttackManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        _selectedAttackTxtBox.text = ((Attack)_selectedAttackId).ToString();
+
         switch (_currentState)
         {
             case State.Select: ManageSelectState(); break;
-            case State.Attack: ManageAttackState(); break;
+            case State.Target: ManageTargetState(); break;
+            case State.Attack:
+                {
+                    switch((Attack)_selectedAttackId)
+                    {
+                        case Attack.Jump: break;
+                        case Attack.Hammer: ManageHammerAttackState(); break;
+                    }
+                    
+                    break;
+                }
             default: break;
         }
     }
 
     private void ManageSelectState()
+    {
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            _currentState = State.Target;
+        }
+        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            StartCoroutine(PlaySfx(_sfxSelect, 1));
+            _selectedAttackId = (_selectedAttackId + 1) % Enum.GetValues(typeof(Attack)).Length;
+        }
+        else if (Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            StartCoroutine(PlaySfx(_sfxSelect, 1));
+            _selectedAttackId = ((_selectedAttackId == 0 ? Enum.GetValues(typeof(Attack)).Length : _selectedAttackId) - 1) % Enum.GetValues(typeof(Attack)).Length;
+        }
+    }
+
+    private void ManageTargetState()
     {
         if (_enemies.Length > 0)
         {
@@ -113,7 +162,39 @@ public class AttackManager : MonoBehaviour
         }
     }
 
-    private void ManageAttackState()
+    private void ManageJumpAttack()
+    {
+        if (Input.GetKeyDown(KeyCode.Return) && _canAcceptJumpInput && !_inputWasHeld)
+        {
+            _inputWasHeld = true;
+            _successfulJump = true;
+        }
+        else if (Input.GetKeyDown(KeyCode.Return) && !_canAcceptJumpInput && !_inputWasHeld)
+        {
+            _inputWasHeld = true;
+            _successfulJump = false;
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Enemy") && (Attack)_selectedAttackId == Attack.Jump)
+        {
+            _canAcceptJumpInput = true;
+            ColorUtility.TryParseHtmlString(_hexOnColor, out Color onColor);
+            _jumpVisualInput.GetComponent<SpriteRenderer>().color = onColor;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Enemy") && (Attack)_selectedAttackId == Attack.Jump)
+        {
+            _canAcceptJumpInput = false;
+        }
+    }
+
+    private void ManageHammerAttackState()
     {
         if (!Input.GetKey(KeyCode.LeftArrow) && !_inputWasHeld)
         {
@@ -134,13 +215,13 @@ public class AttackManager : MonoBehaviour
         {
             _inputTimer += Time.deltaTime;
 
-            if (_inputTimer >= _inputTimerStep * (_nbVisualsOn + 1) && _nbVisualsOn < 4) // Light up the visual cues in sequence after each timer step
+            if (_inputTimer >= _inputTimerStep * (_nbHammerVisualsOn + 1) && _nbHammerVisualsOn < 4) // Light up the visual cues in sequence after each timer step
             {
                 ColorUtility.TryParseHtmlString(_hexOnColor, out Color onColor);
-                _visualTimerSteps[_nbVisualsOn].GetComponent<SpriteRenderer>().color = onColor;
-                ++_nbVisualsOn;
+                _hammerVisualTimerSteps[_nbHammerVisualsOn].GetComponent<SpriteRenderer>().color = onColor;
+                ++_nbHammerVisualsOn;
 
-                if (_nbVisualsOn < 4)
+                if (_nbHammerVisualsOn < 4)
                 {
                     StartCoroutine(PlaySfx(_sfxCountdown, 1));
                 }
@@ -149,14 +230,14 @@ public class AttackManager : MonoBehaviour
                     StartCoroutine(PlaySfx(_sfxEndTimer, 1));
                 }
             }
-            else if (_inputTimer >= _inputTimerStep * (_nbVisualsOn + 1)) // Input was held too long
+            else if (_inputTimer >= _inputTimerStep * (_nbHammerVisualsOn + 1)) // Input was held too long
             {
                 StartCoroutine(RotateHammer(_hammer.transform.localRotation, Quaternion.Euler(0, 0, 100), 1, ProcessAttack, 0));
             }
         }
         else if (!Input.GetKey(KeyCode.LeftArrow) && _inputWasHeld)
         {
-            if (_nbVisualsOn == 4)
+            if (_nbHammerVisualsOn == 4)
             {
                 StartCoroutine(RotateHammer(_hammer.transform.localRotation, Quaternion.Euler(0, 0, -80), 1, ProcessAttack));
             }
@@ -167,6 +248,22 @@ public class AttackManager : MonoBehaviour
         }
     }
 
+    private IEnumerator ArcTransition()
+    {
+        //TODO
+        yield return null;
+        //upward
+
+
+        //arc
+
+        //part-downward
+
+        //rest-downward if no/miss input
+        //otherwise start another arc back + downward
+
+        StartCoroutine(ProcessAttack(_successfulJump ? 1 : 0.5f));
+    }
 
     private IEnumerator RotateHammer(Quaternion start, Quaternion end, float timeMod, Func<float, IEnumerator> onFinished = null, float param = 1)
     {
@@ -221,24 +318,12 @@ public class AttackManager : MonoBehaviour
                 yield return new WaitForEndOfFrame();
             }
 
-            // Make hammer & timer appear after movement is completed
-            SetNestledVisualsEnabled(_hammer, true);
-            _timerBase.GetComponent<SpriteRenderer>().enabled = true;
-            SetNestledVisualsEnabled(_timerBase, true);
+            AdjustAttackVisuals(true);
         }
         else
         {
-            // Make hammer & timer disappear & reset before movement is started
-            SetNestledVisualsEnabled(_hammer, false);
-            _hammer.transform.localRotation = Quaternion.Euler(0,0,0);
+            AdjustAttackVisuals(false);
 
-            _timerBase.GetComponent<SpriteRenderer>().enabled = false;
-            SetNestledVisualsEnabled(_timerBase, false);
-            ColorUtility.TryParseHtmlString(_hexOffColor, out Color offColor);
-            Array.ForEach(_visualTimerSteps, step => step.GetComponent<SpriteRenderer>().color = offColor);
-
-            _nbVisualsOn = 0;
-            _inputTimer = 0;
             _inputWasHeld = false;
 
             Vector3 end = _basePosition;
@@ -264,7 +349,59 @@ public class AttackManager : MonoBehaviour
             }
         }
 
+        if ((Attack)_selectedAttackId == Attack.Jump && towardsEnemy)
+        {
+            StartCoroutine(ArcTransition());
+        }
+
         _currentState = towardsEnemy ? State.Attack : State.Select;
+    }
+
+    private void AdjustAttackVisuals(bool isEnabled)
+    {
+        switch ((Attack)_selectedAttackId)
+        {
+            case Attack.Jump: 
+                {
+                    SpriteRenderer sr = _jumpVisualInput.GetComponent<SpriteRenderer>();
+                    if (isEnabled)
+                    {
+                        sr.enabled = true;
+                    }
+                    else
+                    {
+                        sr.enabled = false;
+                        ColorUtility.TryParseHtmlString(_hexOffColor, out Color offColor);
+                        sr.color = offColor;
+                    }
+
+                    break; 
+                }
+            case Attack.Hammer:
+                {
+                    if (isEnabled)
+                    {
+                        SetNestledVisualsEnabled(_hammer, true);
+                        _timerBase.GetComponent<SpriteRenderer>().enabled = true;
+                        SetNestledVisualsEnabled(_timerBase, true);
+                    }
+                    else
+                    {
+                        SetNestledVisualsEnabled(_hammer, false);
+                        _hammer.transform.localRotation = Quaternion.Euler(0, 0, 0);
+
+                        _timerBase.GetComponent<SpriteRenderer>().enabled = false;
+                        SetNestledVisualsEnabled(_timerBase, false);
+                        ColorUtility.TryParseHtmlString(_hexOffColor, out Color offColor);
+                        Array.ForEach(_hammerVisualTimerSteps, step => step.GetComponent<SpriteRenderer>().color = offColor);
+
+                        _nbHammerVisualsOn = 0;
+                        _inputTimer = 0;
+                    }
+
+                    break;
+                }
+        }
     }
 
     private void SetNestledVisualsEnabled(GameObject parent, bool isEnabled)

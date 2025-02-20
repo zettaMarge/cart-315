@@ -122,3 +122,4 @@ prof suggestion: either build on the previous experiment or be something entirel
     - when in position, if no enemy -> spawn new enemy (same as hammer)
     - restart (same as hammer)
 - if not completed, insert prototype schematics here
+- only thing missing code-wise rn would be the arc transition (the hecks a bezier curve), hopefully ill figure it out in time before class
