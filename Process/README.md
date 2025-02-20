@@ -95,7 +95,7 @@ breakout pinball? piano breakout? dk64randomizer dot com piano game? paper mario
 - for some reason sfx pitch remains at 1, even when changed in editor (NOTE its bc i added an AudioSource component directly to the gameobjects and not creating one from the dropdown menu, thats so dumb smh) (NOTE #2 ITS NOT EVEN THAT ITS JUST THAT ITS RESET TOO FAST, GOD)
 - potential upgrades: abstract AttackManager down to fit w different types of attacks (inheritance) + attack selection menu, add enemy retaliation + type variation beyond just color and hp
 
-Project found under Projects/_experiments, asset folder P3
+Project found under Projects/_experiments, asset folder P3-4
 
 ### CREDITS
 - Bonk sfx downloaded from [here](https://www.myinstants.com/en/instant/doge-bonk-84044/)
@@ -123,3 +123,10 @@ prof suggestion: either build on the previous experiment or be something entirel
     - restart (same as hammer)
 - if not completed, insert prototype schematics here
 - only thing missing code-wise rn would be the arc transition (the hecks a bezier curve), hopefully ill figure it out in time before class
+- bezier quadratic curve is: p(t) = (1 − t)^2 * init + 2t(1 − t)anchor + t^2 * end
+- looks clunky as hell but it works, hooray **c:** could probably just do one big bezier curve instead of the uppies and downies, might look better (NOTE: it does)
+- added some delays here and there we love to see it, better feel
+
+Project found under Projects/_experiments, asset folder P3-4
+
+![Jump Prototype](./Media/P3-Jump.gif)

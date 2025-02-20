@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Linq;
 using TMPro;
@@ -51,7 +51,7 @@ public class AttackManager : MonoBehaviour
     private TextMeshProUGUI _selectedAttackTxtBox;
 
     private Vector3 _basePosition;
-    private State _currentState = State.Target;
+    private State _currentState = State.Select;
     private GameObject[] _enemies;
     private int _idSelectedEnemy = 0;
     private bool _isGettingEnemies = false;
@@ -97,7 +97,7 @@ public class AttackManager : MonoBehaviour
                 {
                     switch((Attack)_selectedAttackId)
                     {
-                        case Attack.Jump: break;
+                        case Attack.Jump: ManageJumpAttack(); break;
                         case Attack.Hammer: ManageHammerAttackState(); break;
                     }
                     
@@ -111,6 +111,7 @@ public class AttackManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return))
         {
+            StartCoroutine(PlaySfx(_sfxSelect, 1.25f));
             _currentState = State.Target;
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow))
@@ -166,6 +167,7 @@ public class AttackManager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return) && _canAcceptJumpInput && !_inputWasHeld)
         {
+            StartCoroutine(PlaySfx(_sfxBonk, 1));
             _inputWasHeld = true;
             _successfulJump = true;
         }
@@ -191,6 +193,12 @@ public class AttackManager : MonoBehaviour
         if (collision.CompareTag("Enemy") && (Attack)_selectedAttackId == Attack.Jump)
         {
             _canAcceptJumpInput = false;
+
+            if (!_successfulJump)
+            {
+                ColorUtility.TryParseHtmlString(_hexOffColor, out Color offColor);
+                _jumpVisualInput.GetComponent<SpriteRenderer>().color = offColor;
+            }
         }
     }
 
@@ -215,7 +223,7 @@ public class AttackManager : MonoBehaviour
         {
             _inputTimer += Time.deltaTime;
 
-            if (_inputTimer >= _inputTimerStep * (_nbHammerVisualsOn + 1) && _nbHammerVisualsOn <�4) // Light up the visual cues in sequence after each timer step
+            if (_inputTimer >= _inputTimerStep * (_nbHammerVisualsOn + 1) && _nbHammerVisualsOn < 4) // Light up the visual cues in sequence after each timer step
             {
                 ColorUtility.TryParseHtmlString(_hexOnColor, out Color onColor);
                 _hammerVisualTimerSteps[_nbHammerVisualsOn].GetComponent<SpriteRenderer>().color = onColor;
@@ -248,19 +256,69 @@ public class AttackManager : MonoBehaviour
         }
     }
 
-    private IEnumerator ArcTransition()
+    private IEnumerator BetterArcTransition()
     {
-        //TODO
-        yield return null;
-        //upward
+        float timeElapsed = 0;
+        float duration = 1.25f;
+        Vector3 init = gameObject.transform.position;
+        Vector3 end = _enemies[_idSelectedEnemy].transform.position;
+        Vector3 anchor = new((init.x + end.x)/2, 2.75f, 0);
 
+        while (timeElapsed < duration)
+        {
+            if (_successfulJump)
+            {
+                break;
+            }
 
-        //arc
+            float smoothTime = timeElapsed / duration;
+            smoothTime = smoothTime * smoothTime * (3f - 2f * smoothTime);
+            float oneMinusT = 1 - smoothTime;
 
-        //part-downward
+            gameObject.transform.position =
+                (oneMinusT * oneMinusT * init) +
+                (2 * smoothTime * oneMinusT * anchor) +
+                (smoothTime * smoothTime * end); 
 
-        //rest-downward if no/miss input
-        //otherwise start another arc back + downward
+            if (_canAcceptJumpInput && !_inputWasHeld)
+            {
+                //slow down a bit for better timing
+                timeElapsed += Time.deltaTime / 1.75f;
+            }
+            else
+            {
+                timeElapsed += Time.deltaTime;
+            }
+
+            yield return new WaitForEndOfFrame();
+        }
+
+        timeElapsed = 0;
+
+        if (_successfulJump)
+        {
+            yield return new WaitForSeconds(0.1f);
+
+            //arc back
+            end = init;
+            init = gameObject.transform.position;
+
+            while (timeElapsed < duration / 1.5f)
+            {
+                float smoothTime = timeElapsed / (duration / 1.5f);
+                smoothTime = smoothTime * smoothTime * (3f - 2f * smoothTime);
+                float oneMinusT = 1 - smoothTime;
+
+                gameObject.transform.position =
+                    (oneMinusT * oneMinusT * init) +
+                    (2 * smoothTime * oneMinusT * anchor) +
+                    (smoothTime * smoothTime * end);
+
+                timeElapsed += Time.deltaTime;
+
+                yield return new WaitForEndOfFrame();
+            }
+        }
 
         StartCoroutine(ProcessAttack(_successfulJump ? 1 : 0.5f));
     }
@@ -288,7 +346,11 @@ public class AttackManager : MonoBehaviour
 
     private IEnumerator ProcessAttack(float damageModifier)
     {
-        StartCoroutine(PlaySfx(_sfxBonk, 1));
+        if ((Attack)_selectedAttackId == Attack.Hammer || (Attack)_selectedAttackId == Attack.Jump && !_successfulJump)
+        {
+            StartCoroutine(PlaySfx(_sfxBonk, 1));
+        }
+        
         _enemies[_idSelectedEnemy].GetComponent<Enemy>().DecreaseHPs((int)Math.Floor(_damageValue * damageModifier));
         yield return new WaitForSeconds(1);
         StartCoroutine(AttackTransition(false));
@@ -325,6 +387,8 @@ public class AttackManager : MonoBehaviour
             AdjustAttackVisuals(false);
 
             _inputWasHeld = false;
+            _successfulJump = false;
+            _canAcceptJumpInput = false;
 
             Vector3 end = _basePosition;
 
@@ -341,17 +405,11 @@ public class AttackManager : MonoBehaviour
             // Reinitialize enemy list & selection
             _enemies = GameObject.FindGameObjectsWithTag("Enemy");
             _idSelectedEnemy = 0;
-
-            if (_enemies.Length > 0)
-            {
-                _selectHighlight.transform.position = _enemies[0].transform.position;
-                SetNestledVisualsEnabled(_selectHighlight, true);
-            }
         }
 
         if ((Attack)_selectedAttackId == Attack.Jump && towardsEnemy)
         {
-            StartCoroutine(ArcTransition());
+            StartCoroutine(BetterArcTransition());
         }
 
         _currentState = towardsEnemy ? State.Attack : State.Select;
