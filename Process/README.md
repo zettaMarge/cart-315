@@ -130,3 +130,44 @@ prof suggestion: either build on the previous experiment or be something entirel
 Project found under Projects/_experiments, asset folder P3-4
 
 ![Jump Prototype](./Media/P4-Jump.gif)
+
+## Week 6-7: Going Into Reading Week (02-20-2025 to 03-05-2025)
+oh thank god no end of semester presentation.
+
+brainstorming: state the challenge/constraints -> criticism is ok + quantity over quality. once an idea is found, find smaller problem statements to better define it
+
+### In-Class Brainstorming Session
+Braindump: pottery idk
+- making things on the wheel is called throwing
+- wedge = getting the air out of the clay + making it firmer
+- eat ur dirt (dont)
+- fine clay particles are real bad for ur lungs
+- throwing process: wet the bat, slam on the bat, stabilize, center (cone), open (make sure there is enough still for the foot), pinch the cylinder, optional but recommended to gather up excess clay from the base into the cylinder (tricky, watch out), actually make the shape from the cylinder, free up excess clay from the foot to help it dry, remove bat from wheel & let dry a bit before covering and letting the piece slowly dry
+- bat (the animal)
+- trimming process: center, keep in place w extra clay or batmate or whatever, finish the shape + the foot, decorate as desired, let dry
+- kiln
+- glaze
+
+Hybrids:
+- wheel bats -> thats just the batmobile
+- dirt bats -> they sleep in caves idk
+- "sandstorm" clay bats w a poison/petrification effect (bc it gets in ur lungs)
+
+Speed Dating:
+- glaze bandits : thieves running a bakery, trying to stay down-low from the law AND ur customers, heists to steal from other bakeries to make ur own better
+- farming bats : either ur a fruit bat w a fruit farm, or ur farming herds of bats (via trees, u pick them like fruit)
+- flying center: bird school for birds to teach them how to fly, floating islands, flying to the center of everything
+- clay sorceress: tower defense game w little clay dudes/pots as ur units
+- bats vs mice: bats have the top of the screen mice have the bottom, or a story about a vampire that turns into a mouse instead of a bat & gets flack for it
+- sleep clay: a pottery student falls asleep while making a piece, nap in the kiln, stealth game in a mansion full of pottery (dont break them or itll wake grandma)
+- light bat: escape from a mine while avoiding shining light on the bats or they get angry and attack
+- thief colony: cult of the lamb style training little robbers, victorian-era aesthetic
+
+as usual, ideas ended up being more thematic than system-based
+
+### TODO
+- extra credit journal entry: game mechanic analysis (due Feb 27)
+- find an idea to prototype (not necessarily in unity yet, can be just on paper for now) that can be iterated upon in the coming weeks
+
+### Dev Notes
+x
