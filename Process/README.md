@@ -198,3 +198,8 @@ Team Cherry also made the decision for the hardest challenges of both platformin
 These designs, along with challenging but generally well-telegraped bosses ~~(except GPZ all my homies hate GPZ)~~, excellent artistic and musical direction, and interesting storyline are combined to make a game that is absolutely incredible. While this much attention to detail is way outside the scope of this prototyping class, it would be a fun experiment to find ways for mechanics to fit in coherently with different systems in a game. Doing this would be a good way to find ideas to make a game stand out from its genre, or lead to concepts that wouldn't have been considered otherwise.
 
 ~~(yes i am comping very well with the wait for Silksong why do you ask)~~
+
+### CREDITS
+- [Mantis Lords gif](https://ddmeow.net/wp-content/uploads/2021/11/MantisLordsHow_7.gif)
+- [Stylized Map png](https://preview.redd.it/x428m90hsqc41.jpg?width=640&crop=smart&auto=webp&s=30dce81befabd885086209e714b8b50dc906bfea)
+- [Pantheon Sly gif](https://indiegameculture.com/wp-content/uploads/2022/05/ezgif.com-gif-maker-1.gif)
