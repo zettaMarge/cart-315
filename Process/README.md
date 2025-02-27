@@ -179,27 +179,3 @@ probably the best thing to do here is build off the 2 previous experiment, gradu
 
 current possible conceptual ideas to make it more distinc than just a Paper Mario clone:
 - game is based on exploration, turn-based battles are how u navigate treacherous environment (high wall to climb, big chasm to jump over, etc). when battle completed successfully, u spawn past it in the overworld (ex initiate battle from one end of a pit, spawn at the other side after the battle makes u cross it safely). enemy retaliations are environmental hazards (falling spikes, rocks getting dislodged & having to keep ur grip, earthquake, etc)
-
-## Extra Credit - Game Analysis : Hollow Knight
-Hollow Knight is a game I greatly enjoyed playing, and while the aesthetics, story, and themes played a huge factor in this, it wouldn't have left such an impact if the gameplay hadn't been so well designed as well. Being a metroidvania, the game mainly focuses on platforming and dealing with a constant presence of small enemies, until a boss of some kind is encountered that blocks off game progression.
-
-![mantis lords my beloveds](./Media/HK-MantisLords.gif)
-
-The thing with Hollow Knight is that the developpers chose to put as much importance in both of these aspects, unlike some other games who share this genre but mainly focus on only one of the two (ex. Ori & The Blind Forest is mostly just about platforming, Sundered is about combat). Progressing through the game requires both good platforming skills and being good at fighting bosses, and the mechanics were designed to be useful in both situations. For example, the final dash ability is useful to reach platforms that are just out of reach of a simple jump, while also letting you evade enemies by dashing through them. Additionally, the base attack is also useful when exploring as it lets you find hidden pathways, and bounce off most dangerous hazards by attacking downwards (i.e. doing a pogo). This balance of the two main systems fits in with the themes of Hollow Knight.
-
-![thats so much to explore goddamn](./Media/Hk-Map.png)
-
-Another interesting mechanic they included to stand out from the typical metroidvania style is that of temporary abilities - many different charms that you discover throughout the game - that you can switch in almost anywhere (so long as you can reach a bench that lets you change your loadout) and combine them in whatever ways that best fits the section you're trying to get through. Just like with the permanent abilities, most of these were designed in a way that's useful to both combat and exploration. Some combinations of charms even have special effects when used together (which is hinted at by the charm-seller NPC) that the players are free to discover on their own as they try different loadouts.
-
-Team Cherry also made the decision for the hardest challenges of both platforming and combat not stop the player from completing the game. While the end of the game is difficult, it is still a reasonable skill progression required for a casual player to beat the game. However, the more confident a player feels in their mastery of the game's systems, the more they are inclined to find and complete these optional challenges. For example, the Pantheon Of The Gods - which is a more challenging alternate way of beating the game - also has optional difficulty modifiers to make it even more challenging than it already is. 
-
-![haha sly go bzzzzzzz](./Media/HK-Pantheon.gif)
-
-These designs, along with challenging but generally well-telegraped bosses ~~(except GPZ all my homies hate GPZ)~~, excellent artistic and musical direction, and interesting storyline are combined to make a game that is absolutely incredible. While this much attention to detail is way outside the scope of this prototyping class, it would be a fun experiment to find ways for mechanics to fit in coherently with different systems in a game. Doing this would be a good way to find ideas to make a game stand out from its genre, or lead to concepts that wouldn't have been considered otherwise.
-
-~~(yes i am comping very well with the wait for Silksong why do you ask)~~
-
-### CREDITS
-- [Mantis Lords gif](https://ddmeow.net/wp-content/uploads/2021/11/MantisLordsHow_7.gif)
-- [Stylized Map png](https://preview.redd.it/x428m90hsqc41.jpg?width=640&crop=smart&auto=webp&s=30dce81befabd885086209e714b8b50dc906bfea)
-- [Pantheon Sly gif](https://indiegameculture.com/wp-content/uploads/2022/05/ezgif.com-gif-maker-1.gif)
