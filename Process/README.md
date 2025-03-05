@@ -177,10 +177,13 @@ probably the best thing to do here is build off the 2 previous experiment, gradu
 - enemy retaliation + modifiers (spikes mean cant jump on it, etc), defend action command
 - finding new combat abilities in the overworld that are then added to ur possible actions in-battle
 - if enough time, replace basic shapes with custom (still) sprites/icons
+- if enough time, save data
 
-current possible conceptual ideas to make it more distinc than just a Paper Mario clone:
-- game is based on exploration, turn-based battles are how u navigate treacherous environment (high wall to climb, big chasm to jump over, etc). when battle completed successfully, u spawn past it in the overworld (ex initiate battle from one end of a pit, spawn at the other side after the battle makes u cross it safely). enemy retaliations are environmental hazards (falling spikes, rocks getting dislodged & having to keep ur grip, earthquake, etc)
+current possible conceptual ideas to make it more distinct than just a Paper Mario clone:
+- game is based on exploration, turn-based battles are how u navigate treacherous environment (high wall to climb, big chasm to jump over, etc). when battle completed successfully, u spawn past it in the overworld (ex initiate battle from one end of a pit, spawn at the other side after the battle makes u cross it safely) w a possibility when completed to a) retry the battle for more exp or b) skip it if backtracking (can just be fade to black to begin with). enemy retaliations are environmental hazards (falling spikes, rocks getting dislodged & having to keep ur grip, earthquake, etc). trail mix to restore hps
 
 ![Iteration Prototype Concept](./Media/IT1-ConceptArt.png)
 
-we love a funny little guy **:3** alas we got midterms to study for so this is most likely it for this week rip, still a decent plan imho
+we love a funny little guy **:3**
+
+alas we got midterms to study for so this is most likely it for this week rip, still a decent plan imho
