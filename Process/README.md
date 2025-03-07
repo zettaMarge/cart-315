@@ -187,3 +187,47 @@ current possible conceptual ideas to make it more distinct than just a Paper Mar
 we love a funny little guy **:3**
 
 alas we got midterms to study for so this is most likely it for this week rip, still a decent plan imho
+
+## Week 8: Iterations Intro (03-06-2025 to 03-12-2025)
+important: have someone else playtest/look at prototype (in class), for feedback
+
+every week/loop keep track of Risks (problems to solve/what question to answer), Prototypes (plan out how to answer the risks), and Results (of prototypes)
+
+### TODO
+work on Iteration #2
+
+### Dev Notes
+Iteration #2 - Perspective Shift Transition
+
+Risk(s):
+- How will the transition to/from battle work? Same scene or different scene?
+    - If same scene, how do we treat running away from battle? especially since the base concept involves advancing in the hazards
+    - If different scenes, do we keep a static orientation (player on the left, enemy on the right) or do we keep in mind how the battle was approached?
+- Considering the battles are environmental in nature, how do we indicate what triggers a battle so it doesnt feel like surprise encounters?
+
+Unity Project Prototype(s):
+- recreate battle experiment from Experiments 3-4 in 3D project (refactoring is not the goal but not unwelcome)
+- add basic overworld scene w player movement and battle triggers
+- test every kind of battle transitions (same scene, diff scenes w static angle, diff scenes w dynamic angle), get feedback from some poor shmuck (brötherrrr)
+
+Other Prototype(s):
+- think of + potentially test in Unity hazard indicator concepts
+- think of + potentially test in Unity same-scene-battle escape
+
+Results:
+- same-scene-battle escape ideas:
+    - screen fade to black, respawn at set location (best for now)
+    - "animated sequence" w player jumping in hole, hole close, hole opens at set location w player jumping out, hole close (more complex but that feel tho) (gotta draw it)
+- x
+
+Whats left for later iterations from initial plan (*if time permits):
+- properly refactor attack manager (abstractize + redo attack transitions to better fit concept)
+- enemy attacks + types (platforms over pit, climbable wall) + modifiers
+- map out + build overworld scene w final goal to reach, items (abilities) to pick up
+- implement new player attacks based on concept
+- \*draw character/item sprites
+- \*title/end scene
+- \*implement save/load system
+
+New potential avenues:
+- x
