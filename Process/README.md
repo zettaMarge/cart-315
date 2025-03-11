@@ -216,9 +216,12 @@ Other Prototype(s):
 
 Results:
 - same-scene-battle escape ideas:
-    - screen fade to black, respawn at set location (best for now)
+    - screen fade to black, respawn at set location (basic, best for now)
     - "animated sequence" w player jumping in hole, hole close, hole opens at set location w player jumping out, hole close (more complex but that feel tho) (gotta draw it)
-- x
+- hazard/battle indicator ideas:
+    - having a bunch of those hiking warning signs (rock slides, exclamation point in triangle, hazardous cliff, etc) near where the battle takes place
+    - addon: some visual effect on the edges of the screen that get more pronounced as u get closer
+- overworld scene raises concern of player movement being jittery when colliding w walls & even clipping. jitteriness fixed by replacing Update w FixedUpdate, but clipping still happens at the junction of walls
 
 Whats left for later iterations from initial plan (*if time permits):
 - properly refactor attack manager (abstractize + redo attack transitions to better fit concept)

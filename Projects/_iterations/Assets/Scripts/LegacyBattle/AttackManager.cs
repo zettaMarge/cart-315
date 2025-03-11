@@ -11,7 +11,8 @@ public class AttackManager : MonoBehaviour
         Select,
         Target,
         Transition,
-        Attack
+        Attack,
+        End
     }
 
     private enum Attack
@@ -54,7 +55,6 @@ public class AttackManager : MonoBehaviour
     private State _currentState = State.Select;
     private GameObject[] _enemies;
     private int _idSelectedEnemy = 0;
-    private bool _isGettingEnemies = false;
 
     private int _selectedAttackId = 0;
     private bool _canAcceptJumpInput = false;
@@ -109,6 +109,12 @@ public class AttackManager : MonoBehaviour
 
     private void ManageSelectState()
     {
+        if (GameObject.FindGameObjectsWithTag("Enemy").Length == 0)
+        {
+            _currentState = State.End;
+            SceneTransManager.Instance.EndBattle();
+        }
+
         if (Input.GetKeyDown(KeyCode.Return))
         {
             StartCoroutine(PlaySfx(_sfxSelect, 1.25f));
@@ -154,13 +160,6 @@ public class AttackManager : MonoBehaviour
             {
                 StartCoroutine(PlaySfx(_sfxSelect, 1));
                 _idSelectedEnemy = ((_idSelectedEnemy == 0 ? _enemies.Length : _idSelectedEnemy) - 1) % _enemies.Length;
-            }
-        }
-        else
-        {
-            if (!_isGettingEnemies)
-            {
-                StartCoroutine(GetNewEnemies());
             }
         }
     }
@@ -493,13 +492,5 @@ public class AttackManager : MonoBehaviour
         }
 
         src.pitch = 1;
-    }
-
-    private IEnumerator GetNewEnemies()
-    {
-        _isGettingEnemies = true;
-        yield return new WaitForSeconds(1);
-        _enemies = GameObject.FindGameObjectsWithTag("Enemy");
-        _isGettingEnemies = false;
     }
 }
