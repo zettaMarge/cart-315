@@ -591,7 +591,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 428565969}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0fb555567741b74eb99d04ae9ce9d0c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -851,7 +851,7 @@ GameObject:
   - component: {fileID: 756525078}
   m_Layer: 0
   m_Name: Ground
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1137,7 +1137,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 893194242}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0fb555567741b74eb99d04ae9ce9d0c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1200,7 +1200,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 905547440}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0fb555567741b74eb99d04ae9ce9d0c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1518,7 +1518,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1099667724}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0fb555567741b74eb99d04ae9ce9d0c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -1626,7 +1626,7 @@ BoxCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1209774627}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f0fb555567741b74eb99d04ae9ce9d0c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -2239,8 +2239,9 @@ MonoBehaviour:
   _leftKeybind: 276
   _rightKeybind: 275
   _jumpKeybind: 32
-  _speed: 7.5
-  _jumpForce: 2
+  _moveBuildupSpeed: 30
+  _maxSpeed: 5
+  _jumpForce: 4
 --- !u!1 &1936689230
 GameObject:
   m_ObjectHideFlags: 0

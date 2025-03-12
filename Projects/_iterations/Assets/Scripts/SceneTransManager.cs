@@ -10,6 +10,7 @@ public class SceneTransManager : MonoBehaviour
 
     private bool _isInit = false;
     private Vector3 _playerOverworldPosition = new(0, 0, 0);
+    private string _triggerName;
 
     private void Awake()
     {
@@ -58,15 +59,21 @@ public class SceneTransManager : MonoBehaviour
             {
                 GameObject player = GameObject.Find("Player");
                 player.transform.position = _playerOverworldPosition;
+                player.GetComponent<OverworldMovement>().SetBattleState(true);
+
+                GameObject trigger = GameObject.Find(_triggerName);
+                Destroy(trigger);
+
                 StartCoroutine(FadeScreen(false));
-                //TODO enable movement
+                player.GetComponent<OverworldMovement>().SetBattleState(false);
             }
         }
     }
 
-    public void StartBattle(Vector3 playerOverworldPosition)
+    public void StartBattle(Vector3 playerOverworldPosition, string triggerName)
     {
         _playerOverworldPosition = playerOverworldPosition;
+        _triggerName = triggerName;
         StartCoroutine(FadeScreen(true, () => SceneManager.LoadScene("LegacyBattle")));
     }
 
@@ -93,7 +100,6 @@ public class SceneTransManager : MonoBehaviour
         {
             while (screen.color.a > 0)
             {
-                Debug.Log(Time.deltaTime);
                 Color updatedColor = screen.color;
                 updatedColor.a -= Time.deltaTime;
                 screen.color = updatedColor;

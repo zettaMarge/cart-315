@@ -13,47 +13,115 @@ public class OverworldMovement : MonoBehaviour
     [SerializeField]
     private KeyCode _jumpKeybind = KeyCode.Space;
     [SerializeField]
-    private float _speed = 7.5f;
+    private float _moveBuildupSpeed = 30;
     [SerializeField]
-    private float _jumpForce = 50;
+    private float _maxSpeed = 5;
+    [SerializeField]
+    private float _jumpForce = 4;
 
     private bool _inBattle = false;
+    private bool _isGrounded = true;
+    private Rigidbody _rb;
+    private (KeyCode? hor, KeyCode? ver) _currentDirs = (null, null);
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        _rb = GetComponent<Rigidbody>();
+        //_rb.maxLinearVelocity = _maxSpeed;
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    private void Update()
     {
         if (!_inBattle)
-        {
-            if (Input.GetKey(_upKeybind))
+        { 
+            HandleDirectionInputs();
+
+            Vector3 movement = new Vector3(
+                    _currentDirs.hor == _leftKeybind? -1 : _currentDirs.hor == _rightKeybind ? 1 : 0,
+                    0,
+                    _currentDirs.ver == _downKeybind ? -1 : _currentDirs.ver == _upKeybind ? 1 : 0
+                );
+
+            float currentSpeed = _rb.linearVelocity.magnitude;
+
+            if (currentSpeed > _maxSpeed)
             {
-                transform.position += new Vector3(0,0,1) * _speed * Time.deltaTime;
+                //TODO fix that blj shit
+                float overspeedAmount = currentSpeed - _maxSpeed;
+                float slowDownForce = overspeedAmount * _moveBuildupSpeed;
+                _rb.AddForce(movement * -1 * slowDownForce * Time.deltaTime, ForceMode.Impulse);
             }
 
-            if (Input.GetKey(_downKeybind))
-            {
-                transform.position += new Vector3(0, 0, -1) * _speed * Time.deltaTime;
-            }
+            _rb.AddForce(movement * _moveBuildupSpeed * Time.deltaTime, ForceMode.Impulse);
 
-            if (Input.GetKey(_leftKeybind))
+            if (Input.GetKeyDown(_jumpKeybind) && _isGrounded)
             {
-                transform.position += new Vector3(-1, 0, 0) * _speed * Time.deltaTime;
-            }
-
-            if (Input.GetKey(_rightKeybind))
-            {
-                transform.position += new Vector3(1, 0, 0) * _speed * Time.deltaTime;
-            }
-
-            if (Input.GetKeyDown(_jumpKeybind))
-            {
-                GetComponent<Rigidbody>().AddForce(transform.up * _jumpForce, ForceMode.Impulse);
+                _isGrounded = false;
+                _rb.AddForce(new Vector3(0, 1, 0) * _jumpForce, ForceMode.Impulse);
             }
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("BattleTrigger"))
+        {
+            _inBattle = true;
+            SceneTransManager.Instance.StartBattle(transform.position, other.name);
+        }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            _isGrounded = true;
+        }
+    }
+
+    private void HandleDirectionInputs()
+    {
+        if (Input.GetKeyDown(_upKeybind))
+        {
+            _currentDirs.ver = _upKeybind;
+        }
+        else if (Input.GetKeyDown(_downKeybind))
+        {
+            _currentDirs.ver = _downKeybind;
+        }
+        
+        if (Input.GetKeyDown(_leftKeybind))
+        {
+            _currentDirs.hor = _leftKeybind;
+        }
+        else if (Input.GetKeyDown(_rightKeybind))
+        {
+            _currentDirs.hor = _rightKeybind;
+        }
+
+        if (Input.GetKeyUp(_upKeybind))
+        {
+            _currentDirs.ver = Input.GetKey(_downKeybind) ? _downKeybind : null;
+        }
+        else if (Input.GetKeyUp(_downKeybind))
+        {
+            _currentDirs.ver = Input.GetKey(_upKeybind) ? _upKeybind : null;
+        }
+        
+        if (Input.GetKeyUp(_leftKeybind))
+        {
+            _currentDirs.hor = Input.GetKey(_rightKeybind) ? _rightKeybind : null;
+        }
+        else if (Input.GetKeyUp(_rightKeybind))
+        {
+            _currentDirs.hor = Input.GetKey(_leftKeybind) ? _leftKeybind : null;
+        }
+    }
+
+    public void SetBattleState(bool state)
+    {
+        _inBattle = state;
     }
 }
