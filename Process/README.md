@@ -221,6 +221,7 @@ Results:
 - hazard/battle indicator ideas:
     - having a bunch of those hiking warning signs (rock slides, exclamation point in triangle, hazardous cliff, etc) near where the battle takes place
     - addon: some visual effect on the edges of the screen that get more pronounced as u get closer
+    ![warning signs](./Media/IT2-WarningSigns.png)
 - overworld scene raises concern of player movement being jittery when colliding w walls & even clipping. jitteriness fixed by replacing Update w FixedUpdate, but clipping still happens at the junction of walls
 - changed back to Update, fixed clipping by using AddForce instead of changing the position. still some fixes to do on that front but Good Enough for now
 - battle transition results:
