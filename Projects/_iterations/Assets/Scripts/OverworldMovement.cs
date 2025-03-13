@@ -18,6 +18,8 @@ public class OverworldMovement : MonoBehaviour
     private float _maxSpeed = 5;
     [SerializeField]
     private float _jumpForce = 4;
+    [SerializeField]
+    private bool _combinedBattle = false;
 
     private bool _inBattle = false;
     private bool _isGrounded = true;
@@ -28,7 +30,6 @@ public class OverworldMovement : MonoBehaviour
     void Start()
     {
         _rb = GetComponent<Rigidbody>();
-        //_rb.maxLinearVelocity = _maxSpeed;
     }
 
     // Update is called once per frame
@@ -69,7 +70,22 @@ public class OverworldMovement : MonoBehaviour
         if (other.CompareTag("BattleTrigger"))
         {
             _inBattle = true;
-            SceneTransManager.Instance.StartBattle(transform.position, other.name);
+
+            if (_combinedBattle)
+            {
+                bool fromLeft = other.transform.position.x > transform.position.x;
+
+                Vector3 adjustedPosition = gameObject.transform.position;
+                adjustedPosition.z = other.gameObject.transform.position.z - 0.5f;
+                adjustedPosition.x = other.gameObject.transform.position.x + (fromLeft? -1 * 1.5f : 1.5f);
+
+                gameObject.transform.position = adjustedPosition;
+                AttackManagerC.Instance.StartBattle(other.gameObject, 1, fromLeft);
+            }
+            else
+            {
+                SceneTransManager.Instance.StartBattle(transform.position, other.name);
+            }
         }
     }
 

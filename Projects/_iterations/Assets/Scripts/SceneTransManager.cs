@@ -32,8 +32,6 @@ public class SceneTransManager : MonoBehaviour
         Color updatedColor = screen.color;
         updatedColor.a = 0;
         screen.color = updatedColor;
-
-        //StartBattle(_playerOverworldPosition);
     }
 
     private void OnEnable()

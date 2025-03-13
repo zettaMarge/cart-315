@@ -223,11 +223,15 @@ Results:
     - addon: some visual effect on the edges of the screen that get more pronounced as u get closer
 - overworld scene raises concern of player movement being jittery when colliding w walls & even clipping. jitteriness fixed by replacing Update w FixedUpdate, but clipping still happens at the junction of walls
 - changed back to Update, fixed clipping by using AddForce instead of changing the position. still some fixes to do on that front but Good Enough for now
+- battle transition results:
+    - different scene: the tried-and-true method, works well enough. but its the tried-and-true method, so it can be p basic. doesnt make much sense to change the battle orientation in this situation tho, so skipped it
+    - same scene: works best w the concept, but can be p limiting considering the enemies are environmental elements of the overworld, ie all encounters are predefined. but its Different, and a good direction to stand out from the genre/try funky things
+        - could make it a rogue. randomize & assemble different overworld chunks together every run. tricky challenge (ex. if chunk A leads to chunk B via a wall-climb section then B needs to have a higher ground level, or making sure battle ability pickups are still reachable in the configuration if it hasnt been picked up), but would bring in variance. sounds funky enough
 
 Whats left for later iterations from initial plan (*if time permits):
 - properly refactor attack manager (abstractize + redo attack transitions to better fit concept)
 - enemy attacks + types (platforms over pit, climbable wall) + modifiers
-- map out + build overworld scene w final goal to reach, items (abilities) to pick up
+- ~~map out + build overworld scene w final goal to reach, items (abilities) to pick up~~
 - implement new player attacks based on concept
 - \*draw character/item sprites
 - \*title/end scene
@@ -235,3 +239,4 @@ Whats left for later iterations from initial plan (*if time permits):
 
 New potential avenues:
 - fix overworld controls
+- **randomize overworld generation** w logic for placing item/ability pickups
