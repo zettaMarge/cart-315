@@ -225,7 +225,9 @@ Results:
 - changed back to Update, fixed clipping by using AddForce instead of changing the position. still some fixes to do on that front but Good Enough for now
 - battle transition results:
     - different scene: the tried-and-true method, works well enough. but its the tried-and-true method, so it can be p basic. doesnt make much sense to change the battle orientation in this situation tho, so skipped it
+    ![separate scenes test](./Media/IT2-Separate.gif)
     - same scene: works best w the concept, but can be p limiting considering the enemies are environmental elements of the overworld, ie all encounters are predefined. but its Different, and a good direction to stand out from the genre/try funky things
+    ![combined scene test](./Media/IT2-Combined.gif)
         - could make it a rogue. randomize & assemble different overworld chunks together every run. tricky challenge (ex. if chunk A leads to chunk B via a wall-climb section then B needs to have a higher ground level, or making sure battle ability pickups are still reachable in the configuration if it hasnt been picked up), but would bring in variance. sounds funky enough
 
 Whats left for later iterations from initial plan (*if time permits):

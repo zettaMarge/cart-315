@@ -70,6 +70,8 @@ public class OverworldMovement : MonoBehaviour
         if (other.CompareTag("BattleTrigger"))
         {
             _inBattle = true;
+            _currentDirs.hor = null;
+            _currentDirs.ver = null;
 
             if (_combinedBattle)
             {
