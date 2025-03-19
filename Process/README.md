@@ -243,3 +243,46 @@ Whats left for later iterations from initial plan (*if time permits):
 New potential avenues:
 - fix overworld controls
 - **randomize overworld generation** w logic for placing item/ability pickups
+
+## Week 9: X (03-13-2025 to 03-19-2025)
+class feedback:
+- include a menu/tutorial to see what the controls are (not everyone played paper mario & knows how to land the action commands)
+
+### TODO
+work on Iteration #3
+
+### Dev Notes
+Risk(s):
+- how would one go about randomizing a 3D stylized world? a quick internet search suggests:
+    - heat map, generally for more realistic styles and Unity terrain. [(src)](https://www.reddit.com/r/Unity3D/comments/2kdfno/how_to_make_3d_random_map_generation_if_you/)
+    - 3D noise generation for a x,y,z grid, each block's value determinates what kind of block is at that coordinate, generally minecraft-y. [(src)](https://www.reddit.com/r/Unity3D/comments/2kdfno/how_to_make_3d_random_map_generation_if_you/)
+    - Random/Drunken Walk algorithm to generate a path in a 2D grid, usually for mazes. [(src)](https://medium.com/@mihailstumkins/how-to-create-random-levels-with-unity-3d-2219c4d39ea8)
+
+Unity Project Prototype(s):
+- create a few basic chunks of varying heights to test WorldGen
+- create customizable Chunk class script for storing height, orientation, etc. data
+- start working on script to generate (small) 2D grid with Random/Drunken Walk algorithm, assign a world chunk to each coordinate w logic reguarding the height (ex. if a chunk has a higher ground level, make sure an adjacent coordinate has at least 1 scalable wall battle, make sure most of the base ground lvl chunks are connected, etc)
+
+Other Prototype(s):
+- start looking at free environmental assets for chunk building
+
+Results:
+- Notable asset packs:
+    - https://assetstore.unity.com/packages/3d/environments/3d-low-poly-environment-assets-299354
+    - https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153
+    - https://assetstore.unity.com/packages/3d/environments/lowpoly-environment-nature-free-medieval-fantasy-series-187052
+    - https://assetstore.unity.com/packages/2d/textures-materials/nature/ground-earth-and-rocks-free-texture-a-hand-painted-235783
+    - https://assetstore.unity.com/packages/2d/textures-materials/nature/handpainted-grass-ground-textures-187634
+- generating a random tile grid is eazy, writing the logic for assigning the chunks less so. will have to figure out how to work out the pits, making sure u cant just walk around them
+- best to stick to a small grid for now
+
+Whats left for later iterations (*if time permits):
+- fix overworld controls
+- add menu w control scheme + attack timing description
+- properly refactor attack manager (abstractize + redo attack transitions to better fit concept)
+- convert enemies to environment (platforms over pit, climbable wall), add enemy attacks + modifiers (ex. spiked platform)
+- adapt WorldGen to available abilities
+- \*implement new player attacks based on concept
+- \*draw character/item sprites
+- \*title/end scene
+- \*implement save/load system
