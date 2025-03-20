@@ -244,7 +244,7 @@ New potential avenues:
 - fix overworld controls
 - **randomize overworld generation** w logic for placing item/ability pickups
 
-## Week 9: X (03-13-2025 to 03-19-2025)
+## Week 9: Iteratin' (03-13-2025 to 03-19-2025)
 class feedback:
 - include a menu/tutorial to see what the controls are (not everyone played paper mario & knows how to land the action commands)
 
@@ -268,21 +268,26 @@ Other Prototype(s):
 
 Results:
 - Notable asset packs:
-    - https://assetstore.unity.com/packages/3d/environments/3d-low-poly-environment-assets-299354
-    - https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153
-    - https://assetstore.unity.com/packages/3d/environments/lowpoly-environment-nature-free-medieval-fantasy-series-187052
-    - https://assetstore.unity.com/packages/2d/textures-materials/nature/ground-earth-and-rocks-free-texture-a-hand-painted-235783
-    - https://assetstore.unity.com/packages/2d/textures-materials/nature/handpainted-grass-ground-textures-187634
+    - [aw yeah low-poly mountains](https://assetstore.unity.com/packages/3d/environments/3d-low-poly-environment-assets-299354)
+    ![low-poly mountain assets](./Media/IT3-lowPolyMtn.webp)
+    - [nice low-poly trees](https://assetstore.unity.com/packages/3d/environments/landscapes/low-poly-simple-nature-pack-162153)
+    ![low-poly mountain assets](./Media/IT3-lowPolyNature.webp)
+    - [this one might be a bit too high-poly for my tastes but still](https://assetstore.unity.com/packages/3d/environments/lowpoly-environment-nature-free-medieval-fantasy-series-187052)
+    - [good rocky ground texture](https://assetstore.unity.com/packages/2d/textures-materials/nature/ground-earth-and-rocks-free-texture-a-hand-painted-235783)
+    - [more nice textures](https://assetstore.unity.com/packages/2d/textures-materials/nature/handpainted-grass-ground-textures-187634)
 - generating a random tile grid is eazy, writing the logic for assigning the chunks less so. will have to figure out how to work out the pits, making sure u cant just walk around them
 - best to stick to a small grid for now
+- found a good script base for grouping connected tiles of the same type, will help to assign chunks
+- will have to adjust camera for if theres a higher chunk between it and the player, also gotta make sure theres no encounter directly behind a higher chunk
+- good progress was made on the WorldGen script, but highly likely i wont get to finish it this iteration bc its complex. might have overshot a weeeeeeee bit w this, oopsie **c:-0** but a good learning experience nonetheless, in this house we respect the KISS principle. should make at least one default world scene so i can focus on the rest of the important bits to have a decent final prototype by the end of the semester & keep hacking at it if i get the time
 
-Whats left for later iterations (*if time permits):
-- fix overworld controls
+Whats left for later iterations (**priority**, \*if time permits, ~~def not enough time rip~~):
+- **fix overworld controls + camera when high chunk between cam-player**
 - add menu w control scheme + attack timing description
-- properly refactor attack manager (abstractize + redo attack transitions to better fit concept)
-- convert enemies to environment (platforms over pit, climbable wall), add enemy attacks + modifiers (ex. spiked platform)
-- adapt WorldGen to available abilities
-- \*implement new player attacks based on concept
-- \*draw character/item sprites
-- \*title/end scene
-- \*implement save/load system
+- refactor attack manager (~~abstractize +~~ **redo attack transitions to better fit concept**)
+- **convert enemies to environment (platforms over pit, climbable wall)**, add enemy attacks + modifiers (ex. spiked platform)
+- \*finish WorldGen script
+- ~~implement new player attacks based on concept~~
+- ~~draw character/item sprites~~
+- ~~title/end scene~~
+- ~~implement save/load system~~

@@ -13,6 +13,7 @@ public class WorldChunk : MonoBehaviour
     private enum Direction
     {
         Up,
+        Down,
         Left,
         Right
     }
@@ -21,8 +22,11 @@ public class WorldChunk : MonoBehaviour
     private int _groundLvl;
 
     [SerializeField]
-    private (Direction dir, HeightLvl height)[] _climbableWalls;
+    private (Direction dir, HeightLvl height)[] _chunkTransitions;
 
     [SerializeField]
     private Vector3[] _spawnLocations;
+
+    [SerializeField]
+    private GameObject[] _hazardGroups;
 }
