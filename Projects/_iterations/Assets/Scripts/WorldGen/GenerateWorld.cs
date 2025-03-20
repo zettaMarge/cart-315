@@ -7,20 +7,25 @@ public class GenerateWorld : MonoBehaviour
     private int _maxWidth = 6;
     private int _maxHeight = 4;
     private float _gridFillPercent = 0.6f; //for a 6x4 grid, should be 15 tiles
-    private float _summitCapPercent = 0.2f; //for a 6x4 grid (15 tiles), should be 3 tiles
-    private float _peakCapPercent = 0.4f; //for a 6x4 grid (15 tiles), should be 6 tiles
+    private float _summitCapPercent = 0.2f; //for a 6x4 grid (15 tiles), should be at most 3 tiles
+    private float _peakCapPercent = 0.4f; //for a 6x4 grid (15 tiles), should be at most 6 tiles
+    private float _basePlaceSummitPercent = 0.35f;
+    private float _basePlacePeakPercent = 0.5f;
+    private float _bonusPlacePercent = 0.05f;
 
     private struct WorldTile
     {
         public WorldChunk.HeightLvl heightLvl;
         public WorldChunk chunk;
         public bool visited;
+        public int x;
+        public int y;
     }
 
     private WorldTile[,] _2Dgrid;
-    private (int x, int y)[][] _connectedGroundGroupsList;
-    private (int x, int y)[][] _connectedPeakGroupsList;
-    private (int x, int y)[][] _connectedSummitGroupsList;
+    private List<List<WorldTile>> _connectedGroundGroupsList;
+    private List<List<WorldTile>> _connectedPeakGroupsList;
+    private List<List<WorldTile>> _connectedSummitGroupsList;
 
     private struct RandomWalker
     {
@@ -34,6 +39,7 @@ public class GenerateWorld : MonoBehaviour
     private float _walkerDestroyProb = 0.05f;
     private int _maxWalkers = 5;
     private int _iterationSteps = 100000;
+    private float _chunkSize = 15;
 
     private void Awake()
     {
@@ -41,7 +47,7 @@ public class GenerateWorld : MonoBehaviour
         RandomizeWorldShape();
         RandomizeWorldHeight();
         FindHeightGroups();
-        //foreach coord, place random matching chunk
+        GenerateWorldChunks();
         //spawn player + pick if not picked up
     }
 
@@ -86,6 +92,84 @@ public class GenerateWorld : MonoBehaviour
             }
         }
     }
+
+    private WorldTile[] GetAllNeighbors(WorldTile tile)
+    {
+        WorldTile[] neighbors;
+
+        if (tile.x == 0)
+        {
+            if (tile.y == 0)
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x + 1, tile.y],
+                            _2Dgrid[tile.x, tile.y + 1]
+                        };
+            }
+            else
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x + 1, tile.y],
+                            _2Dgrid[tile.x, tile.y + 1],
+                            _2Dgrid[tile.x, tile.y - 1]
+                        };
+            }
+        }
+        else if (tile.y == 0)
+        {
+            neighbors = new WorldTile[] {
+                        _2Dgrid[tile.x + 1, tile.y],
+                        _2Dgrid[tile.x - 1, tile.y],
+                        _2Dgrid[tile.x, tile.y + 1]
+                    };
+        }
+        else
+        {
+            neighbors = new WorldTile[] {
+                        _2Dgrid[tile.x + 1, tile.y],
+                        _2Dgrid[tile.x - 1, tile.y],
+                        _2Dgrid[tile.x, tile.y + 1],
+                        _2Dgrid[tile.x, tile.y - 1]
+                    };
+        }
+
+        return neighbors;
+    }
+
+    private WorldTile[] GetPreviousNeighbors(WorldTile tile)
+    {
+        WorldTile[] neighbors;
+
+        if (tile.x == 0)
+        {
+            if (tile.y > 0)
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x, tile.y - 1]
+                        };
+            }
+            else
+            {
+                neighbors = new WorldTile[] { };
+            }
+        }
+        else if (tile.y == 0)
+        {
+            neighbors = new WorldTile[] {
+                        _2Dgrid[tile.x - 1, tile.y],
+                    };
+        }
+        else
+        {
+            neighbors = new WorldTile[] {
+                        _2Dgrid[tile.x - 1, tile.y],
+                        _2Dgrid[tile.x, tile.y - 1]
+                    };
+        }
+
+        return neighbors;
+    }
+
     #endregion //HelperFuncs
 
     private void SetupGrid()
@@ -99,6 +183,8 @@ public class GenerateWorld : MonoBehaviour
                 WorldTile tile = new();
                 tile.heightLvl = WorldChunk.HeightLvl.Void;
                 tile.visited = false;
+                tile.x = x;
+                tile.y = y;
                 _2Dgrid[x, y] = tile;
             }
         }
@@ -187,6 +273,8 @@ public class GenerateWorld : MonoBehaviour
 
     private void RandomizeWorldHeight()
     {
+        bool checkSummit = false;
+
         //1st pass
         for (int x = 0; x < _maxWidth; x++)
         {
@@ -198,19 +286,46 @@ public class GenerateWorld : MonoBehaviour
                     continue;
                 }
 
-                //if (y > 0 && _2Dgrid[x, y - 1].heightLvl == WorldChunk.HeightLvl.Ground)
-                //{
-                //    continue;
-                //}
-                //else 
-                if (GetNbTiles(WorldChunk.HeightLvl.Summit) / _2Dgrid.Length < _summitCapPercent)
+                WorldTile[] neighbors = GetPreviousNeighbors(tile);
+
+                //Roll rng for summit
+                if (checkSummit && GetNbTiles(WorldChunk.HeightLvl.Summit) / _2Dgrid.Length < _summitCapPercent)
                 {
-                    //rool rng for summit, if not roll rng for peak. both slightly more likely if some already around
+                    int bonusMod = neighbors.Where(
+                            tile => tile.heightLvl == WorldChunk.HeightLvl.Peak || 
+                            tile.heightLvl == WorldChunk.HeightLvl.Summit
+                        ).Count() > 0 ? 
+                        1 : 0;
+
+                    float percent = _basePlaceSummitPercent + bonusMod * _bonusPlacePercent;
+
+                    if (Random.value < percent) 
+                    {
+                        tile.heightLvl = WorldChunk.HeightLvl.Summit;
+                        _2Dgrid[x, y] = tile;
+                        checkSummit = !checkSummit;
+                        continue;
+                    }
                 }
-                else if (GetNbTiles(WorldChunk.HeightLvl.Peak) / _2Dgrid.Length < _peakCapPercent)
+
+                //Roll rng for peak
+                if (GetNbTiles(WorldChunk.HeightLvl.Peak) / _2Dgrid.Length < _peakCapPercent)
                 {
-                    //roll rng for peak. slightly more likely if some (summit too) already around
+                    int bonusMod = neighbors.Where(
+                            tile => tile.heightLvl == WorldChunk.HeightLvl.Peak
+                        ).Count() > 0 ?
+                        1 : 0;
+
+                    float percent = _basePlacePeakPercent + bonusMod * _bonusPlacePercent;
+
+                    if (Random.value < percent)
+                    {
+                        tile.heightLvl = WorldChunk.HeightLvl.Peak;
+                        _2Dgrid[x, y] = tile;
+                    }
                 }
+
+                checkSummit = !checkSummit;
             }
         }
 
@@ -226,43 +341,7 @@ public class GenerateWorld : MonoBehaviour
                     continue;
                 }
 
-                WorldTile[] neighbors;
-
-                if (x == 1)
-                {
-                    if (y == 1)
-                    {
-                        neighbors = new WorldTile[] {
-                            _2Dgrid[x + 1, y],
-                            _2Dgrid[x, y + 1]
-                        };
-                    }
-                    else
-                    {
-                        neighbors = new WorldTile[] {
-                            _2Dgrid[x + 1, y],
-                            _2Dgrid[x, y + 1],
-                            _2Dgrid[x, y - 1]
-                        };
-                    }
-                }
-                else if (y == 1)
-                {
-                    neighbors = new WorldTile[] {
-                        _2Dgrid[x + 1, y],
-                        _2Dgrid[x - 1, y],
-                        _2Dgrid[x, y + 1]
-                    };
-                }
-                else
-                {
-                    neighbors = new WorldTile[] {
-                        _2Dgrid[x + 1, y],
-                        _2Dgrid[x - 1, y],
-                        _2Dgrid[x, y + 1],
-                        _2Dgrid[x, y - 1]
-                    };
-                }
+                WorldTile[] neighbors = GetAllNeighbors(tile);
 
                 if (tile.heightLvl == WorldChunk.HeightLvl.Ground)
                 {
@@ -290,12 +369,71 @@ public class GenerateWorld : MonoBehaviour
 
     private void FindHeightGroups()
     {
+        for (int x = 0; x < _maxWidth; x++)
+        {
+            for (int y = 0; y < _maxHeight; y++)
+            {
+                WorldTile tile = _2Dgrid[x, y];
 
+                if (tile.visited || tile.heightLvl == WorldChunk.HeightLvl.Void)
+                {
+                    continue;
+                }
+
+                if (x > 0)
+                {
+                    WorldTile neighbor = _2Dgrid[x - 1, y];
+
+                    if (tile.heightLvl == neighbor.heightLvl)
+                    {
+                        List<WorldTile> group = new();
+                        PopulateHeightGroup(tile, group);
+
+                        switch (tile.heightLvl)
+                        {
+                            case WorldChunk.HeightLvl.Ground: _connectedGroundGroupsList.Add(group); break;
+                            case WorldChunk.HeightLvl.Peak: _connectedPeakGroupsList.Add(group); break;
+                            case WorldChunk.HeightLvl.Summit: _connectedSummitGroupsList.Add(group); break;
+                        }
+                    }
+                }
+
+                if (y > 0)
+                {
+                    WorldTile neighbor = _2Dgrid[x, y - 1];
+
+                    if (tile.heightLvl == neighbor.heightLvl)
+                    {
+                        List<WorldTile> group = new();
+                        PopulateHeightGroup(tile, group);
+
+                        switch (tile.heightLvl)
+                        {
+                            case WorldChunk.HeightLvl.Ground: _connectedGroundGroupsList.Add(group); break;
+                            case WorldChunk.HeightLvl.Peak: _connectedPeakGroupsList.Add(group); break;
+                            case WorldChunk.HeightLvl.Summit: _connectedSummitGroupsList.Add(group); break;
+                        }
+                    }
+                }
+            }
+        }
+
+        ResetVisited();
     }
 
-    private void PopulateHeightGroup()
+    private void PopulateHeightGroup(WorldTile tile, List<WorldTile> group)
     {
+        group.Add(tile);
+        tile.visited = true;
+        WorldTile[] neighbors = GetAllNeighbors(tile);
 
+        foreach (WorldTile neighbor in neighbors)
+        {
+            if (tile.heightLvl == neighbor.heightLvl && !neighbor.visited)
+            {
+                PopulateHeightGroup(neighbor, group);
+            }
+        }
     }
 
     private void GenerateWorldChunks()

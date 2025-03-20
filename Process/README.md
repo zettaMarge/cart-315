@@ -280,6 +280,7 @@ Results:
 - found a good script base for grouping connected tiles of the same type, will help to assign chunks
 - will have to adjust camera for if theres a higher chunk between it and the player, also gotta make sure theres no encounter directly behind a higher chunk
 - good progress was made on the WorldGen script, but highly likely i wont get to finish it this iteration bc its complex. might have overshot a weeeeeeee bit w this, oopsie **c:-0** but a good learning experience nonetheless, in this house we respect the KISS principle. should make at least one default world scene so i can focus on the rest of the important bits to have a decent final prototype by the end of the semester & keep hacking at it if i get the time
+- all thats left is the chunk-assigning logic and making chunks. def got newfound respect for the good people of dk64randomizer dot com, coding good rando logic is rough
 
 Whats left for later iterations (**priority**, \*if time permits, ~~def not enough time rip~~):
 - **fix overworld controls + camera when high chunk between cam-player**

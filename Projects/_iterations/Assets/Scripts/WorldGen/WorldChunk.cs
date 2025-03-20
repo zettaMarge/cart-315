@@ -18,11 +18,18 @@ public class WorldChunk : MonoBehaviour
         Right
     }
 
-    [SerializeField]
-    private int _groundLvl;
+    [System.Serializable]
+    private struct ChunkExit
+    {
+        public Direction dir;
+        public HeightLvl height;
+    }
 
     [SerializeField]
-    private (Direction dir, HeightLvl height)[] _chunkTransitions;
+    private HeightLvl _heightLvl;
+
+    [SerializeField]
+    private ChunkExit[] _chunkExits;
 
     [SerializeField]
     private Vector3[] _spawnLocations;
