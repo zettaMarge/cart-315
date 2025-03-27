@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class GenerateWorld : MonoBehaviour
@@ -39,7 +40,12 @@ public class GenerateWorld : MonoBehaviour
     private float _walkerDestroyProb = 0.05f;
     private int _maxWalkers = 5;
     private int _iterationSteps = 100000;
+
     private float _chunkSize = 15;
+    private List<GameObject> _groundChunks;
+    private List<GameObject> _peakChunks;
+    private List<GameObject> _summitChunks;
+    private List<GameObject> _otherChunks;
 
     private void Awake()
     {
@@ -47,8 +53,9 @@ public class GenerateWorld : MonoBehaviour
         RandomizeWorldShape();
         RandomizeWorldHeight();
         FindHeightGroups();
+        LoadPrefabList();
         GenerateWorldChunks();
-        //spawn player + pick if not picked up
+        //spawn player here
     }
 
     #region HelperFuncs
@@ -436,16 +443,37 @@ public class GenerateWorld : MonoBehaviour
         }
     }
 
+    private void LoadPrefabList()
+    {
+        string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/WorldChunks" });
+
+        foreach (string guid in guids)
+        {
+            var path = AssetDatabase.GUIDToAssetPath(guid);
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+            WorldChunk chunk = prefab.GetComponent<WorldChunk>();
+            switch (chunk.heightLvl)
+            {
+                case WorldChunk.HeightLvl.Ground: _groundChunks.Add(prefab); break;
+                case WorldChunk.HeightLvl.Peak: _peakChunks.Add(prefab); break;
+                case WorldChunk.HeightLvl.Summit: _summitChunks.Add(prefab); break;
+                default: _otherChunks.Add(prefab); break;
+            }
+        }
+    }
+
     private void GenerateWorldChunks()
     {
         /*
             IMPORTANT: *-1 when shifting on z so that 0,0 is top left
             Logic: foreach in grid
-                check surrounding tiles, keep track of increase in height
-                if any height increase,
-                    basic logic: assign chunk w all matching sides
-                    adv logic: make sure each peak/summit group has at least 1 climb encounter
-                watch for chunk transitions in any case   
+                check heightLvl
+                check surrounding tiles, keep track of direct increase in height
+                make sure each peak/summit group has at least 1 climb encounter
+                watch for chunk transitions, can put pit if not on matching edge  
+                assign chunk
+            double check?
+            foreach in grid: instantiate chunk in scene
         */
     }
 }

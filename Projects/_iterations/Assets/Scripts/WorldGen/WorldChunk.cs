@@ -27,6 +27,7 @@ public class WorldChunk : MonoBehaviour
 
     [SerializeField]
     private HeightLvl _heightLvl;
+    public HeightLvl heightLvl { get { return _heightLvl; } }
 
     [SerializeField]
     private ChunkExit[] _chunkExits;

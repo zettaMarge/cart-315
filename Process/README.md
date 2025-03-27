@@ -292,3 +292,27 @@ Whats left for later iterations (**priority**, \*if time permits, ~~def not enou
 - ~~draw character/item sprites~~
 - ~~title/end scene~~
 - ~~implement save/load system~~
+
+## Week 10: Iterating Still (03-20-2025 to 03-26-2025)
+What - So What - Now What
+
+### TODO
+work on Iteration #4
+
+### Dev Notes
+Risk(s):
+- for the final iteration result, do i want a functional rando WorldGen or do i want a playable example of the game loop?
+    - WorldGen: more about wanting a technical result, full Implementation
+    - playable: more of a mix of Look/Feel and Implementation
+
+Unity Project Prorotype(s):
+- create a few basic chunks of varying heights; needed regardless of which final result im going for
+- if playable, create 1 pre-built overworld scene + look into fixing the camera
+- if WorldGen, keep hacking at the script and test it
+
+Results:
+- just a general observation, but i havent been thinking at all about Role implementation all throughout the semester
+- going down the rando path wooo!! feels more challenging to get right and its all about prototyping anyways, trial & error.
+    - **Expected final prototype: having a scene that randomizes a world every time its loaded. unplayable but can use the scene view to look around**
+- basic chunks were made. unfortunately not much else was made given The Current Circumstances(tm). tried to outline the desired chunk-assigning
+![soooo... chunks, huh](./Media/IT4-Chunks.gif)
