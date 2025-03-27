@@ -314,5 +314,6 @@ Results:
 - just a general observation, but i havent been thinking at all about Role implementation all throughout the semester
 - going down the rando path wooo!! feels more challenging to get right and its all about prototyping anyways, trial & error.
     - **Expected final prototype: having a scene that randomizes a world every time its loaded. unplayable but can use the scene view to look around**
-- basic chunks were made. unfortunately not much else was made given The Current Circumstances(tm). tried to outline the desired chunk-assigning
+- chunks. thats it.
+
 ![soooo... chunks, huh](./Media/IT4-Chunks.gif)
