@@ -317,3 +317,20 @@ Results:
 - chunks. thats it.
 
 ![soooo... chunks, huh](./Media/IT4-Chunks.gif)
+
+## Week 11: Homestretch (03-27-2025 to 04-02-2025)
+Pippin presentation
+
+### TODO
+work on Iteration #5
+
+### Dev Notes
+Risk(s):
+- can i get that chunk-assigning done (to my liking)
+
+Unity Project Prorotype(s):
+- get that chunk-assigning done
+
+Results:
+- found a seemingly decent logic that shouldnt take too many loops
+- 

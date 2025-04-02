@@ -194,6 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _heightLvl: 2
+  _encounter: 2
   _chunkExits:
   - dir: 3
     height: 2

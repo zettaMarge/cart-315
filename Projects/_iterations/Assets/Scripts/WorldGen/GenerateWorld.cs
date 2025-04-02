@@ -464,16 +464,44 @@ public class GenerateWorld : MonoBehaviour
 
     private void GenerateWorldChunks()
     {
-        /*
-            IMPORTANT: *-1 when shifting on z so that 0,0 is top left
-            Logic: foreach in grid
-                check heightLvl
-                check surrounding tiles, keep track of direct increase in height
-                make sure each peak/summit group has at least 1 climb encounter
-                watch for chunk transitions, can put pit if not on matching edge  
-                assign chunk
-            double check?
+        /*   
+            foreach in peak/summit height group
+                check how many tiles have lower-height siblings
+                pick at least one, assign it corresponding chunk
+            
+            foreach in grid
+                if chunk already assigned, continue
+                if no cliff-chunk or other hole in immediate radius AND corresponding direction of same height on both sides,
+                    rng place hole
+                    if hole placed, recursive place empty tile
+                        conditions: on same height + there isnt another adjacent same direction pit (not in recursive direction) + isnt a cliff climb chunk already
+                        if not placed, stop recursion
+                        after placing empty tile, rng stop recursion
+                    else normal chunk
+                else normal chunk
+
             foreach in grid: instantiate chunk in scene
+                IMPORTANT: *-1 when shifting on z so that 0,0 is top left
         */
+
+        foreach (List<WorldTile> group in _connectedPeakGroupsList)
+        {
+            
+        }
+
+        foreach (List<WorldTile> group in _connectedSummitGroupsList)
+        {
+
+        }
+
+        foreach (WorldTile tile in _2Dgrid)
+        {
+
+        }
+
+        foreach (WorldTile tile in _2Dgrid)
+        {
+            Instantiate(tile.chunk, new(tile.x * _chunkSize, 0, tile.y * _chunkSize * -1), Quaternion.identity);
+        }
     }
 }

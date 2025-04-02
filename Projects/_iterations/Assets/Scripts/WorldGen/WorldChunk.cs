@@ -10,12 +10,19 @@ public class WorldChunk : MonoBehaviour
         Summit
     }
 
-    private enum Direction
+    public enum Direction
     {
         Up,
         Down,
         Left,
         Right
+    }
+
+    public enum EncounterType
+    {
+        None,
+        Climb,
+        Hole
     }
 
     [System.Serializable]
@@ -28,6 +35,10 @@ public class WorldChunk : MonoBehaviour
     [SerializeField]
     private HeightLvl _heightLvl;
     public HeightLvl heightLvl { get { return _heightLvl; } }
+
+    [SerializeField]
+    private EncounterType _encounter;
+    public EncounterType encounter { get { return _encounter; } }
 
     [SerializeField]
     private ChunkExit[] _chunkExits;
