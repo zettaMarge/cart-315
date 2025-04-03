@@ -26,7 +26,7 @@ public class WorldChunk : MonoBehaviour
     }
 
     [System.Serializable]
-    private struct ChunkExit
+    public struct ChunkExit
     {
         public Direction dir;
         public HeightLvl height;
@@ -42,10 +42,5 @@ public class WorldChunk : MonoBehaviour
 
     [SerializeField]
     private ChunkExit[] _chunkExits;
-
-    [SerializeField]
-    private Vector3[] _spawnLocations;
-
-    [SerializeField]
-    private GameObject[] _hazardGroups;
+    public ChunkExit[] chunkExits { get { return _chunkExits; } }
 }

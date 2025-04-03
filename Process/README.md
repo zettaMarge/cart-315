@@ -333,4 +333,4 @@ Unity Project Prorotype(s):
 
 Results:
 - found a seemingly decent logic that shouldnt take too many loops
-- 
+- need to think of a fix for the edgecase where the tile selected to have cliff encounter is behind the higher-up tile to prevent it from happening
