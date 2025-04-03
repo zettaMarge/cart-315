@@ -334,3 +334,19 @@ Unity Project Prorotype(s):
 Results:
 - found a seemingly decent logic that shouldnt take too many loops
 - need to think of a fix for the edgecase where the tile selected to have cliff encounter is behind the higher-up tile to prevent it from happening
+- somethings up, mostly void. also a vertical hole cross was placed on the top edge of the map, which shouldnt be the case.
+
+![mostly void, partially code fuckups](./Media/IT5-MostlyVoid.png)
+
+- mostly void bc the walker loop only goes once bc GetNbTiles counts all tiles by default so its automatically higher than the fill%. except now instead of just 1 tile its just the top row, somehow the walker(s) are spending all their iterations there. dang y instead of z
+- nts in loops when passing a tile to a function to modify it, it doesnt actually apply the change when doing ```tile.whatever = whatever```, which messes w the rest of things. do ```grid[tile.x, tile.y].whatever = whatever``` instead
+- slightly better, havent gotten to fixing the hole chunk logic but how tf did a walker jump like that. answer is another sneaky y instead of z. except now it somehow fills the whole board. damn int/int not resulting in a float
+
+![huh????](./Media/IT5-WalkerJumped.png)
+
+- looking better, but one summit has no climbable wall to get up to it so gotta tweak that logic a bit too. some slight tweaks to the chunks' size and y-placement too. seems like the singular peaks/summits are the ones that dont get a climbable wall up to. havent gotten any hole spawned in these good ones
+- nts missing some chunks where the climbable walls is north, gotta make them
+- potential logic upgrade: make sure peak/summit groups have a climbable wall in adjacent ground group. also get them hole spawns fixed. and them null refs that sometimes happen
+
+![nice](./Media/IT5-ClosestSoFar.png)
+![neat](./Media/IT5-FeatFrontClimb.png)

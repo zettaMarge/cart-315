@@ -15,7 +15,7 @@ public class GenerateWorld : MonoBehaviour
     private float _bonusPlacePercent = 0.05f;
     private float _placeHolePercent = 0.25f;
 
-    private struct WorldTile
+    private class WorldTile
     {
         public WorldChunk.HeightLvl heightLvl;
         public GameObject chunk;
@@ -39,7 +39,7 @@ public class GenerateWorld : MonoBehaviour
     private float _walkerDirChangeProb = 0.5f;
     private float _walkerSpawnProb = 0.05f;
     private float _walkerDestroyProb = 0.05f;
-    private int _maxWalkers = 5;
+    private int _maxWalkers = 1;
     private int _iterationSteps = 100000;
 
     private float _chunkSize = 15;
@@ -61,7 +61,7 @@ public class GenerateWorld : MonoBehaviour
     #region HelperFuncs
     private Vector3 GetRandomDirection()
     {
-        int rng = Mathf.FloorToInt(Random.value * 3.99f);
+        int rng = Random.Range(0, 4);
 
         return rng switch
         {
@@ -72,32 +72,19 @@ public class GenerateWorld : MonoBehaviour
         };
     }
 
-    private int GetNbTiles(WorldChunk.HeightLvl countType = WorldChunk.HeightLvl.Void) //if Void we count all used tiles
+    private int GetNbTiles(WorldChunk.HeightLvl countType) //if Void we count all used tiles
     {
         int count = 0;
 
         foreach (WorldTile tile in _2Dgrid)
         {
-            if ((countType == WorldChunk.HeightLvl.Void && tile.heightLvl != WorldChunk.HeightLvl.Void) || tile.heightLvl == countType)
+            if (tile.heightLvl == countType)
             {
                 count++;
             }
         }
 
         return count;
-    }
-
-    private void ResetVisited()
-    {
-        for (int x = 0; x < _maxWidth; x++)
-        {
-            for (int y = 0; y < _maxHeight; y++)
-            {
-                WorldTile tile = _2Dgrid[x, y];
-                tile.visited = false;
-                _2Dgrid[x, y] = tile;
-            }
-        }
     }
 
     private WorldTile[] GetAllNeighbors(WorldTile tile, bool diagonalAlso = false)
@@ -118,6 +105,18 @@ public class GenerateWorld : MonoBehaviour
                     neighbors.Append(_2Dgrid[tile.x + 1, tile.y + 1]);
                 }
             }
+            else if (tile.y == _maxHeight - 1)
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x + 1, tile.y],
+                            _2Dgrid[tile.x, tile.y - 1]
+                        };
+
+                if (diagonalAlso)
+                {
+                    neighbors.Append(_2Dgrid[tile.x + 1, tile.y - 1]);
+                }
+            }
             else
             {
                 neighbors = new WorldTile[] {
@@ -133,6 +132,47 @@ public class GenerateWorld : MonoBehaviour
                 }
             }
         }
+        else if (tile.x == _maxWidth - 1)
+        {
+            if (tile.y == 0)
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x - 1, tile.y],
+                            _2Dgrid[tile.x, tile.y + 1]
+                        };
+
+                if (diagonalAlso)
+                {
+                    neighbors.Append(_2Dgrid[tile.x - 1, tile.y + 1]);
+                }
+            }
+            else if (tile.y == _maxHeight - 1)
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x - 1, tile.y],
+                            _2Dgrid[tile.x, tile.y - 1]
+                        };
+
+                if (diagonalAlso)
+                {
+                    neighbors.Append(_2Dgrid[tile.x - 1, tile.y - 1]);
+                }
+            }
+            else
+            {
+                neighbors = new WorldTile[] {
+                            _2Dgrid[tile.x - 1, tile.y],
+                            _2Dgrid[tile.x, tile.y + 1],
+                            _2Dgrid[tile.x, tile.y - 1]
+                        };
+
+                if (diagonalAlso)
+                {
+                    neighbors.Append(_2Dgrid[tile.x - 1, tile.y + 1]);
+                    neighbors.Append(_2Dgrid[tile.x - 1, tile.y - 1]);
+                }
+            }
+        }
         else if (tile.y == 0)
         {
             neighbors = new WorldTile[] {
@@ -145,6 +185,20 @@ public class GenerateWorld : MonoBehaviour
             {
                 neighbors.Append(_2Dgrid[tile.x + 1, tile.y + 1]);
                 neighbors.Append(_2Dgrid[tile.x - 1, tile.y + 1]);
+            }
+        }
+        else if (tile.y == _maxHeight - 1)
+        {
+            neighbors = new WorldTile[] {
+                        _2Dgrid[tile.x + 1, tile.y],
+                        _2Dgrid[tile.x - 1, tile.y],
+                        _2Dgrid[tile.x, tile.y - 1]
+                    };
+
+            if (diagonalAlso)
+            {
+                neighbors.Append(_2Dgrid[tile.x + 1, tile.y - 1]);
+                neighbors.Append(_2Dgrid[tile.x - 1, tile.y - 1]);
             }
         }
         else
@@ -214,7 +268,7 @@ public class GenerateWorld : MonoBehaviour
             default: chunk = _otherChunks[0]; break;
         }
 
-        tile.chunk = chunk;
+        _2Dgrid[tile.x, tile.y].chunk = chunk;
     }
 
     private void AssignHoleChunk(WorldTile tile, bool isHorz)
@@ -228,7 +282,7 @@ public class GenerateWorld : MonoBehaviour
             default: chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First(); break;
         }
 
-        tile.chunk = chunk;
+        _2Dgrid[tile.x, tile.y].chunk = chunk;
     }
 
     #endregion //HelperFuncs
@@ -266,7 +320,7 @@ public class GenerateWorld : MonoBehaviour
             //Base ground lvl wherever walkers go
             foreach (RandomWalker walker in _walkers)
             {
-                _2Dgrid[(int)walker.pos.x, (int)walker.pos.y].heightLvl = WorldChunk.HeightLvl.Ground;
+                _2Dgrid[(int)walker.pos.x, (int)walker.pos.z].heightLvl = WorldChunk.HeightLvl.Ground;
             }
 
             //Chance destroy walker
@@ -316,13 +370,14 @@ public class GenerateWorld : MonoBehaviour
             for (int i = 0; i < _walkers.Count; i++)
             {
                 RandomWalker walker = _walkers[i];
-                walker.pos.x = Mathf.Clamp(walker.pos.x, 1, _maxWidth - 2);
-                walker.pos.z = Mathf.Clamp(walker.pos.y, 1, _maxHeight - 2);
+                walker.pos.x = Mathf.Clamp(walker.pos.x, 0, _maxWidth - 1);
+                walker.pos.z = Mathf.Clamp(walker.pos.z, 0, _maxHeight - 1);
                 _walkers[i] = walker;
             }
 
             //Check to exit loop
-            if (GetNbTiles() / _2Dgrid.Length > _gridFillPercent)
+            float nb = GetNbTiles(WorldChunk.HeightLvl.Ground);
+            if (nb / _2Dgrid.Length > _gridFillPercent)
             {
                 break;
             }
@@ -330,6 +385,8 @@ public class GenerateWorld : MonoBehaviour
             iterations++;
         }
         while (iterations < _iterationSteps);
+
+        
     }
 
     private void RandomizeWorldHeight()
@@ -430,6 +487,10 @@ public class GenerateWorld : MonoBehaviour
 
     private void FindHeightGroups()
     {
+        _connectedGroundGroupsList = new();
+        _connectedPeakGroupsList = new();
+        _connectedSummitGroupsList = new();
+
         for (int x = 0; x < _maxWidth; x++)
         {
             for (int y = 0; y < _maxHeight; y++)
@@ -478,14 +539,12 @@ public class GenerateWorld : MonoBehaviour
                 }
             }
         }
-
-        ResetVisited();
     }
 
     private void PopulateHeightGroup(WorldTile tile, List<WorldTile> group)
     {
-        group.Add(tile);
-        tile.visited = true;
+        group.Add(_2Dgrid[tile.x, tile.y]);
+        _2Dgrid[tile.x, tile.y].visited = true;
         WorldTile[] neighbors = GetAllNeighbors(tile);
 
         foreach (WorldTile neighbor in neighbors)
@@ -500,6 +559,10 @@ public class GenerateWorld : MonoBehaviour
     private void LoadPrefabList()
     {
         string[] guids = AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/WorldChunks" });
+        _groundChunks = new();
+        _peakChunks = new();
+        _summitChunks = new();
+        _otherChunks = new();
 
         foreach (string guid in guids)
         {
@@ -548,30 +611,31 @@ public class GenerateWorld : MonoBehaviour
                 lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Ground && !lowerNeighbors.Contains(n)));
             }
 
+            if (lowerNeighbors.Count == 0)
+            {
+                continue;
+            }
+
             int id;
             WorldTile tileToAssign;
+            WorldTile neighborInGroup;
 
             do
             {
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
+                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
             }
-            while (tileToAssign.chunk is not null);
+            while (tileToAssign.chunk is not null && neighborInGroup is null);
 
-            WorldTile neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && group.Contains(n)).First();
+            Debug.Log($"neighbor: {neighborInGroup}");
+            Debug.Log($"assign: {tileToAssign}");
 
             if (neighborInGroup.x == tileToAssign.x)
             {
-                if (neighborInGroup.y < tileToAssign.y)
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-                else
-                {
-                    //ERROR no such chunk, TODO
-                }
+                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
+                GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                tileToAssign.chunk = chunk;
             }
             else
             {
@@ -600,43 +664,41 @@ public class GenerateWorld : MonoBehaviour
                 lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && !lowerNeighbors.Contains(n)));
             }
 
+            if (lowerNeighbors.Count == 0)
+            {
+                continue;
+            }
+
             int id;
             WorldTile tileToAssign;
+            WorldTile neighborInGroup;
 
             do
             {
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
+                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
             }
-            while (tileToAssign.chunk is not null);
-
-            WorldTile neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && group.Contains(n)).First();
+            while (tileToAssign.chunk is not null && neighborInGroup is null);
 
             if (neighborInGroup.x == tileToAssign.x)
             {
-                if (neighborInGroup.y < tileToAssign.y)
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-                else
-                {
-                    //ERROR no such chunk, TODO
-                }
+                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Summit };
+                GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                tileToAssign.chunk = chunk;
             }
             else
             {
                 if (neighborInGroup.x < tileToAssign.x)
                 {
                     WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
                     tileToAssign.chunk = chunk;
                 }
                 else
                 {
                     WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
                     tileToAssign.chunk = chunk;
                 }
             }
@@ -664,11 +726,13 @@ public class GenerateWorld : MonoBehaviour
                 {
                     AssignHoleChunk(tile, true);
                     //TODO recursive add pits
+                    Debug.Log("recursively place void chunks");
                 }
                 else if (!checkHorz && (tile.y != 0 || tile.y != _maxHeight) && Random.value < _placeHolePercent)
                 {
                     AssignHoleChunk(tile, false);
                     //TODO recursive add pits
+                    Debug.Log("recursively place void chunks");
                 }
                 else
                 {
