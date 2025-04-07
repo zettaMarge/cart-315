@@ -350,3 +350,40 @@ Results:
 
 ![nice](./Media/IT5-ClosestSoFar.png)
 ![neat](./Media/IT5-FeatFrontClimb.png)
+
+## Week 12: The End (04-03-2025 to 04-10-2025)
+- sales pitch: whats the product (econo, cultural, creative, intel) - to who (player, publisher, press, boss) - whats the narrative of ur pitch
+- pyramid (topdown): game concept (5sec, constantly being refined, ex: TITLE: quick description - what u have to do - main qualifiers) -> victory condition -> mechanics -> selling points
+- q/a: have predetermined questions to get feedback on instead of leaving it open, dont argue about the feedback
+
+### TODO
+finalise iteration project
+
+### Dev Notes
+Risk(s):
+- bug/fix:
+    - ~~too many peaks (probably an int-float thing again)~~
+    - ~~neighborInGroup null thing~~
+    - fix hole spawn logic
+    - ~~fix single height group climb spawn logic~~
+    - upgrade: make sure peak/summit groups have a climbable wall in each adjacent ground group
+
+Unity Project Prorotype(s):
+- get that chunk-assigning done pt.2
+
+Results:
+- slight feedback from class: have somewhat more obvious distinction between the heights (color-code, etc) for better visualisation
+
+![color chunks](./Media/ITF-DiffChunkColors.png)
+
+- fixing the nb of higher tiles should be a mix of int-float thing + currently dividing by the total size of the grid and not the nb of used tiles, THEORETICALLY. somehow theres still some seeds that are mostly peak rather than ground (most likely could be bc of the 2nd pass to check if surroundings are all higher/void)
+- fixed the unreachable single higher chunks by adding lists of single tiles + making sure to assign the summits before the peaks. raised another issue w the current height-assigning where a peak can be connected to no summit, and a group of lower ground can be fully stranded behind higher tiles (bc no climbable wall from the south of a chunk)
+
+![stranded](./Media/ITF-StrandedChunks.png)
+
+- possible fix for stranded heights: do another walker sequence instead of the current rng method. for peaks, the % of tiles should be the current peakCap + summitCap. for summits, only walk on peaks and % of tiles should be just summitCap
+- damn this is like the almost-platonic ideal of worldgen its just missing some holes
+
+![sick](./Media/ITF-AlmostPlatonicIdeal.png)
+
+- the null thing was just me not checking the right list, dang copy-paste
