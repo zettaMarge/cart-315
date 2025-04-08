@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -14,6 +15,7 @@ public class GenerateWorld : MonoBehaviour
     private float _basePlacePeakPercent = 0.5f;
     private float _bonusPlacePercent = 0.05f;
     private float _placeHolePercent = 0.25f;
+    private Coroutine worldGenRoutine;
 
     private class WorldTile
     {
@@ -40,7 +42,7 @@ public class GenerateWorld : MonoBehaviour
     private float _walkerSpawnProb = 0.05f;
     private float _walkerDestroyProb = 0.05f;
     private int _maxWalkers = 1;
-    private int _iterationSteps = 100000;
+    private int _iterationSteps = 1000;
 
     private float _chunkSize = 15;
     private List<GameObject> _groundChunks;
@@ -49,6 +51,11 @@ public class GenerateWorld : MonoBehaviour
     private List<GameObject> _otherChunks;
 
     private void Awake()
+    {
+        worldGenRoutine = StartCoroutine(GenerateNewWorld());
+    }
+
+    private IEnumerator GenerateNewWorld()
     {
         SetupGrid();
         RandomizeWorldShape();
@@ -61,9 +68,17 @@ public class GenerateWorld : MonoBehaviour
         FindHeightGroups();
         LoadPrefabList();
         GenerateWorldChunks();
+        yield return null;
     }
 
     #region HelperFuncs
+    private void QuitProgram(string reason)
+    {
+        StopCoroutine(worldGenRoutine);
+        Debug.Log($"Stopping WorldGen due to {reason}");
+        EditorApplication.isPlaying = false;
+    }
+
     private Vector3 GetRandomDirection()
     {
         int rng = Random.Range(0, 4);
@@ -296,17 +311,23 @@ public class GenerateWorld : MonoBehaviour
         {
             WorldTile tileBefore = _2Dgrid[tile.x - 1, tile.y];
             WorldTile tileAfter = _2Dgrid[tile.x + 1, tile.y];
+            WorldTile oppBefore = tile.y - 1 >= 0 ? _2Dgrid[tile.x, tile.y - 1] : null;
+            WorldTile oppAfter = tile.y + 1 < _maxHeight ? _2Dgrid[tile.x, tile.y + 1] : null;
+            WorldChunk.ChunkExit oppExit = new() { dir = WorldChunk.Direction.Right, height = tile.heightLvl };
 
             if (
                 tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
                 (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
                 tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
-                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole)
+                (tileBefore.heightLvl == tile.heightLvl || tileAfter.heightLvl == tile.heightLvl) &&
+                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
+                (oppBefore is null || oppBefore.chunk is null || oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppBefore.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit))) &&
+                (oppAfter is null || oppAfter.chunk is null || oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppAfter.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit)))
             )
             {
                 AssignHoleChunk(tile, true);
-                //TODO recursive add pits
-                Debug.Log("recursively place void chunks");
+                AssignVoidPostHole(tile, WorldChunk.Direction.Up);
+                //AssignVoidPostHole(tile, WorldChunk.Direction.Down);
                 return true;
             }
         }
@@ -320,22 +341,36 @@ public class GenerateWorld : MonoBehaviour
         {
             WorldTile tileBefore = _2Dgrid[tile.x, tile.y - 1];
             WorldTile tileAfter = _2Dgrid[tile.x, tile.y + 1];
+            WorldTile oppBefore = tile.x - 1 >= 0 ? _2Dgrid[tile.x - 1, tile.y] : null;
+            WorldTile oppAfter = tile.x + 1 < _maxWidth ? _2Dgrid[tile.x + 1, tile.y] : null;
+            WorldChunk.ChunkExit oppExit = new() { dir = WorldChunk.Direction.Up, height = tile.heightLvl };
 
             if (
                 tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
                 (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
                 tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
-                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole)
+                (tileBefore.heightLvl == tile.heightLvl || tileAfter.heightLvl == tile.heightLvl) &&
+                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
+                (oppBefore is null || oppBefore.chunk is null || oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppBefore.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit))) &&
+                (oppAfter is null || oppAfter.chunk is null || oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppAfter.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit)))
             )
             {
                 AssignHoleChunk(tile, false);
-                //TODO recursive add pits
-                Debug.Log("recursively place void chunks");
+                AssignVoidPostHole(tile, WorldChunk.Direction.Left);
+                //AssignVoidPostHole(tile, WorldChunk.Direction.Right);
                 return true;
             }
         }
 
         return false;
+    }
+
+    private void AssignVoidPostHole(WorldTile tile, WorldChunk.Direction nextDir)
+    {
+        //if tile on same height, isnt climb/hole, doesnt have a lower climb neighbor up to it.
+        //  then check next tile in specified direction (if not on edge)
+        //otherwise stop recursion
+        Debug.Log("recursively place void chunks");
     }
 
     #endregion //HelperFuncs
@@ -705,28 +740,6 @@ public class GenerateWorld : MonoBehaviour
 
     private void GenerateWorldChunks()
     {
-        /*   
-            foreach in peak/summit height group
-                check how many tiles have lower-height siblings
-                pick at least one, assign it corresponding chunk
-            
-            foreach in grid
-                if chunk already assigned, continue
-                if no cliff-chunk or other hole in immediate radius AND corresponding direction of same height on both sides,
-                    rng place hole
-                    if hole placed, recursive place empty tile
-                        conditions: on same height + there isnt another adjacent same direction pit (not in recursive direction) + isnt a cliff climb chunk already
-                        if not placed, stop recursion
-                        after placing empty tile, rng stop recursion
-                    else normal chunk
-                else normal chunk
-
-            foreach in grid: instantiate chunk in scene
-                IMPORTANT: *-1 when shifting on z so that 0,0 is top left
-
-            IMPORTANT: is there a way to prioritize groups of size 1
-        */
-
         //Assign climb chunks adjacent to single summits
         foreach (List<WorldTile> group in _connectedSummitGroupsList.Where(g => g.Count() == 1))
         {
@@ -743,15 +756,22 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
+            int iterations = 0;
             int id;
             WorldTile tileToAssign;
             WorldTile neighborInGroup;
-
+            
             do
             {
+                if (iterations > _iterationSteps)
+                {
+                    QuitProgram("being stuck in a loop while assigning chunks near single summits");
+                }
+
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
                 neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                ++iterations;
             }
             while (tileToAssign.chunk is not null || neighborInGroup is null);
 
@@ -794,15 +814,22 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
+            int iterations = 0;
             int id;
             WorldTile tileToAssign;
             WorldTile neighborInGroup;
 
             do
             {
+                if (iterations > _iterationSteps)
+                {
+                    QuitProgram("being stuck in a loop while assigning chunks near grouped summits");
+                }
+
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
                 neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                ++iterations;
             }
             while (tileToAssign.chunk is not null || neighborInGroup is null);
 
@@ -845,15 +872,22 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
+            int iterations = 0;
             int id;
             WorldTile tileToAssign;
             WorldTile neighborInGroup;
 
             do
             {
+                if (iterations > _iterationSteps)
+                {
+                    QuitProgram("being stuck in a loop while assigning chunks near single peaks");
+                }
+
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
                 neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                ++iterations;
             }
             while (tileToAssign.chunk is not null || neighborInGroup is null);
 
@@ -896,15 +930,22 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
+            int iterations = 0;
             int id;
             WorldTile tileToAssign;
             WorldTile neighborInGroup;
 
             do
             {
+                if (iterations > _iterationSteps)
+                {
+                    QuitProgram("being stuck in a loop while assigning chunks near grouped peaks");
+                }
+
                 id = Random.Range(0, lowerNeighbors.Count);
                 tileToAssign = lowerNeighbors[id];
                 neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                ++iterations;
             }
             while (tileToAssign.chunk is not null || neighborInGroup is null);
 

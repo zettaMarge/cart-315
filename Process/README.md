@@ -367,6 +367,7 @@ Risk(s):
     - ~~fix hole spawn logic~~
     - ~~fix single height group climb spawn logic~~
     - upgrade: make sure peak/summit groups have a climbable wall in each adjacent ground group
+    - fix stranded ground groups
 
 Unity Project Prorotype(s):
 - get that chunk-assigning done pt.2
@@ -400,6 +401,11 @@ Results:
 ![oooooooh](./Media/ITF-ThisOneTho.png)
 
 - still getting some seeds that get stuck loading for many minutes, so gotta fix that still. but outside reviews are in and people think the idea for the prototype and the results are real neat
-- still a few edge-cases to fix also, as evidence by this worldgen where a pit prevents access to a crucial tile 
+- still a few edge-cases to fix also, as evidence by these worldgens where a pit prevents access to a crucial tile 
 
 ![i speak it into existence by curse of code decay](./Media/ITF-ProofOfFixStill.png)
+![bad pit](./Media/ITF-BadPit1.png)
+![bad pit](./Media/ITF-BadPit2.png)
+
+- still possible for ground height to be only adjacent to summits, possible fix: find a summit tile (w least summit neighbors) adjacent to both that ground group and a non-climb peak, change it to a ground-to-peak climb. if none, change a ground-adjacent summit to a peak-to-summit climb, and change an adjacent ground to it to a ground-to-peak climb
+- put in a check for if a loop takes too long to stop play mode and getting stuck while starting play mode still happens. gonna try running the code in a coroutine see if it happens again. NOTE: yes. try killing the coroutine instead
