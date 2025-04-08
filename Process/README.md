@@ -364,7 +364,7 @@ Risk(s):
 - bug/fix:
     - ~~too many peaks (probably an int-float thing again)~~
     - ~~neighborInGroup null thing~~
-    - fix hole spawn logic
+    - ~~fix hole spawn logic~~
     - ~~fix single height group climb spawn logic~~
     - upgrade: make sure peak/summit groups have a climbable wall in each adjacent ground group
 
@@ -382,8 +382,24 @@ Results:
 ![stranded](./Media/ITF-StrandedChunks.png)
 
 - possible fix for stranded heights: do another walker sequence instead of the current rng method. for peaks, the % of tiles should be the current peakCap + summitCap. for summits, only walk on peaks and % of tiles should be just summitCap
-- damn this is like the almost-platonic ideal of worldgen its just missing some holes
+- damn these are like the almost-platonic ideal of worldgen its just missing some holes
 
-![sick](./Media/ITF-AlmostPlatonicIdeal.png)
+![sick](./Media/ITF-AlmostPlatonicIdeal1.png)
+![sick](./Media/ITF-AlmostPlatonicIdeal2.png)
 
 - the null thing was just me not checking the right list, dang copy-paste
+- now this. this is the real platonic ideal. im not even done tweaking the logic. incredible.
+
+![The One](./Media/ITF-TheOne.png)
+![another](./Media/ITF-AnotherWinner1.png)
+![another](./Media/ITF-AnotherWinner2.png)
+
+- damn look at these funky one, starting to think i dont necessarily need to tweak it any further
+
+![wont you take me to](./Media/ITF-FunkyTown.png)
+![oooooooh](./Media/ITF-ThisOneTho.png)
+
+- still getting some seeds that get stuck loading for many minutes, so gotta fix that still. but outside reviews are in and people think the idea for the prototype and the results are real neat
+- still a few edge-cases to fix also, as evidence by this worldgen where a pit prevents access to a crucial tile 
+
+![i speak it into existence by curse of code decay](./Media/ITF-ProofOfFixStill.png)

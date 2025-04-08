@@ -290,6 +290,54 @@ public class GenerateWorld : MonoBehaviour
         _2Dgrid[tile.x, tile.y].chunk = chunk;
     }
 
+    private bool CheckHorizontalHoleAssign(WorldTile tile)
+    {
+        if (tile.x != 0 && tile.x != _maxWidth - 1 && Random.value < _placeHolePercent)
+        {
+            WorldTile tileBefore = _2Dgrid[tile.x - 1, tile.y];
+            WorldTile tileAfter = _2Dgrid[tile.x + 1, tile.y];
+
+            if (
+                tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
+                (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
+                tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
+                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole)
+            )
+            {
+                AssignHoleChunk(tile, true);
+                //TODO recursive add pits
+                Debug.Log("recursively place void chunks");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CheckVerticalHoleAssign(WorldTile tile)
+    {
+        if (tile.y != 0 && tile.y != _maxHeight - 1 && Random.value < _placeHolePercent)
+        {
+            WorldTile tileBefore = _2Dgrid[tile.x, tile.y - 1];
+            WorldTile tileAfter = _2Dgrid[tile.x, tile.y + 1];
+
+            if (
+                tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
+                (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
+                tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
+                (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole)
+            )
+            {
+                AssignHoleChunk(tile, false);
+                //TODO recursive add pits
+                Debug.Log("recursively place void chunks");
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #endregion //HelperFuncs
 
     private void SetupGrid()
@@ -679,6 +727,7 @@ public class GenerateWorld : MonoBehaviour
             IMPORTANT: is there a way to prioritize groups of size 1
         */
 
+        //Assign climb chunks adjacent to single summits
         foreach (List<WorldTile> group in _connectedSummitGroupsList.Where(g => g.Count() == 1))
         {
             List<WorldTile> lowerNeighbors = new();
@@ -729,6 +778,7 @@ public class GenerateWorld : MonoBehaviour
             }
         }
 
+        //Assign climb chunks adjacent to grouped summits
         foreach (List<WorldTile> group in _connectedSummitGroupsList.Where(g => g.Count() > 1))
         {
             List<WorldTile> lowerNeighbors = new();
@@ -779,6 +829,7 @@ public class GenerateWorld : MonoBehaviour
             }
         }
 
+        //Assign climb chunks adjacent to single peaks
         foreach (List<WorldTile> group in _connectedPeakGroupsList.Where(g => g.Count() == 1))
         {
             List<WorldTile> lowerNeighbors = new();
@@ -829,6 +880,7 @@ public class GenerateWorld : MonoBehaviour
             }
         }
 
+        //Assign chunks adjacent to grouped peaks
         foreach (List<WorldTile> group in _connectedPeakGroupsList.Where(g => g.Count() > 1))
         {
             List<WorldTile> lowerNeighbors = new();
@@ -879,7 +931,8 @@ public class GenerateWorld : MonoBehaviour
             }
         }
 
-        bool checkHorz = false;
+        //Assign holes
+        bool checkHorzFirst = false;
 
         foreach (WorldTile tile in _2Dgrid)
         {
@@ -893,35 +946,39 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
-            WorldTile[] neighbors = GetAllNeighbors(tile, true);
-            
-            if (neighbors.Where(n => n.chunk is not null && n.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.None).Count() == 0)
+            if (checkHorzFirst)
             {
-                if (checkHorz && (tile.x != 0 && tile.x != _maxWidth - 1) && Random.value < _placeHolePercent)
+                if (CheckHorizontalHoleAssign(tile))
                 {
-                    AssignHoleChunk(tile, true);
-                    //TODO recursive add pits
-                    Debug.Log("recursively place void chunks");
-                }
-                else if (!checkHorz && (tile.y != 0 && tile.y != _maxHeight - 1) && Random.value < _placeHolePercent)
-                {
-                    AssignHoleChunk(tile, false);
-                    //TODO recursive add pits
-                    Debug.Log("recursively place void chunks");
-                }
-                else
-                {
-                    AssignBasicChunk(tile);
+                    checkHorzFirst = !checkHorzFirst;
+                    continue;
                 }
 
-                checkHorz = !checkHorz;
+                if (CheckVerticalHoleAssign(tile))
+                {
+                    checkHorzFirst = !checkHorzFirst;
+                    continue;
+                }
             }
             else
             {
-                AssignBasicChunk(tile);
+                if (CheckVerticalHoleAssign(tile))
+                {
+                    checkHorzFirst = !checkHorzFirst;
+                    continue;
+                }
+
+                if (CheckHorizontalHoleAssign(tile))
+                {
+                    checkHorzFirst = !checkHorzFirst;
+                    continue;
+                }
             }
+
+            AssignBasicChunk(tile);
         }
 
+        //Instantiate chunks
         foreach (WorldTile tile in _2Dgrid)
         {
             Instantiate(tile.chunk, new(tile.x * _chunkSize, 0, tile.y * _chunkSize * -1), Quaternion.identity);
