@@ -366,8 +366,8 @@ Risk(s):
     - ~~neighborInGroup null thing~~
     - ~~fix hole spawn logic~~
     - ~~fix single height group climb spawn logic~~
-    - upgrade: make sure peak/summit groups have a climbable wall in each adjacent ground group
-    - fix stranded ground groups
+    - ~~upgrade: make sure peak/summit groups have a climbable wall in each adjacent ground group~~
+    - ~~fix stranded ground groups~~
 
 Unity Project Prorotype(s):
 - get that chunk-assigning done pt.2
