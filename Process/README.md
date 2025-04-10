@@ -407,5 +407,16 @@ Results:
 ![bad pit](./Media/ITF-BadPit1.png)
 ![bad pit](./Media/ITF-BadPit2.png)
 
-- still possible for ground height to be only adjacent to summits, possible fix: find a summit tile (w least summit neighbors) adjacent to both that ground group and a non-climb peak, change it to a ground-to-peak climb. if none, change a ground-adjacent summit to a peak-to-summit climb, and change an adjacent ground to it to a ground-to-peak climb
-- put in a check for if a loop takes too long to stop play mode and getting stuck while starting play mode still happens. gonna try running the code in a coroutine see if it happens again. NOTE: yes. try killing the coroutine instead
+- still possible for ground height to be only adjacent to summits, add more complexity to double checking heights
+- put in a check for if a loop takes too long to stop play mode and getting stuck while starting play mode still happens. gonna try running the code in a coroutine see if it happens again. NOTE: yes. try killing the coroutine instead. NOTE: found a non-coroutine workaround
+- first test in making sure each peak/summit groups have a climbable wall in each adjacent lower group, somehow missing one climb but overall seems to work. seems to be consistently ground chunks that dont get assigned. also, this fix triggers the auto-loop-stop more often but hey it works
+
+![many climbs](./Media/ITF-ClimbFix1.png)
+![many climbs](./Media/ITF-ClimbFix2.png)
+
+- somehow the lack of climb doesnt happen if i dont use the function i made to limit code duplication. go figure
+
+![idk](./Media/ITF-ClimbFix3.png)
+![idk](./Media/ITF-ClimbFix4.png)
+
+- still a few kinks to works out, evidently. also havent implemented the pit recursion, but given that its unnecessary most of the time ill just say: **Good Enough(tm)**. still very happy w what i made tho, lots to consider when doing a rando!

@@ -14,8 +14,7 @@ public class GenerateWorld : MonoBehaviour
     private float _basePlaceSummitPercent = 0.35f;
     private float _basePlacePeakPercent = 0.5f;
     private float _bonusPlacePercent = 0.05f;
-    private float _placeHolePercent = 0.25f;
-    private Coroutine worldGenRoutine;
+    private float _placeHolePercent = 0.7f;
 
     private class WorldTile
     {
@@ -42,7 +41,7 @@ public class GenerateWorld : MonoBehaviour
     private float _walkerSpawnProb = 0.05f;
     private float _walkerDestroyProb = 0.05f;
     private int _maxWalkers = 1;
-    private int _iterationSteps = 1000;
+    private int _iterationSteps = 100000;
 
     private float _chunkSize = 15;
     private List<GameObject> _groundChunks;
@@ -52,29 +51,23 @@ public class GenerateWorld : MonoBehaviour
 
     private void Awake()
     {
-        worldGenRoutine = StartCoroutine(GenerateNewWorld());
-    }
-
-    private IEnumerator GenerateNewWorld()
-    {
         SetupGrid();
         RandomizeWorldShape();
 
-        //RandomizeWorldHeight();
         NewRandomizeWorldHeight(WorldChunk.HeightLvl.Ground, WorldChunk.HeightLvl.Peak, _peakCapPercent + _summitCapPercent);
         NewRandomizeWorldHeight(WorldChunk.HeightLvl.Peak, WorldChunk.HeightLvl.Summit, _summitCapPercent);
-
-        DoubleCheckHeight();
+        CheckHeightSurroundings();
         FindHeightGroups();
+        CheckStrandedGrounds();
+
         LoadPrefabList();
-        GenerateWorldChunks();
-        yield return null;
+        AssignWorldChunks();
+        InstantiateChunks();
     }
 
     #region HelperFuncs
     private void QuitProgram(string reason)
     {
-        StopCoroutine(worldGenRoutine);
         Debug.Log($"Stopping WorldGen due to {reason}");
         EditorApplication.isPlaying = false;
     }
@@ -291,6 +284,80 @@ public class GenerateWorld : MonoBehaviour
         _2Dgrid[tile.x, tile.y].chunk = chunk;
     }
 
+    private void AssignClimbChunk(IEnumerable<List<WorldTile>> groupList, List<List<WorldTile>> lowerGroupList, WorldChunk.HeightLvl lowerHeight, List<GameObject> lowerChunks, string loopStopReason)
+    {
+        foreach (List<WorldTile> group in groupList)
+        {
+            List<WorldTile> lowerNeighbors = new();
+            List<List<WorldTile>> neighborGroups = new();
+
+            foreach (WorldTile tile in group)
+            {
+                WorldTile[] neighbors = GetAllNeighbors(tile);
+                lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == lowerHeight && !lowerNeighbors.Contains(n)));
+
+                foreach (WorldTile neighbor in neighbors)
+                {
+                    if (neighbor.heightLvl == WorldChunk.HeightLvl.Peak)
+                    {
+                        neighborGroups.AddRange(lowerGroupList.Where(g => g.Contains(neighbor) && !neighborGroups.Contains(g)));
+                    }
+                }
+            }
+
+            if (lowerNeighbors.Count == 0)
+            {
+                continue;
+            }
+
+            foreach (List<WorldTile> ng in neighborGroups)
+            {
+                int iterations = 0;
+                int id;
+                WorldTile tileToAssign;
+                WorldTile neighborInGroup;
+                WorldTile[] candidates = lowerNeighbors.Where(n => ng.Contains(n)).ToArray();
+
+                do
+                {
+                    id = Random.Range(0, candidates.Count());
+                    tileToAssign = candidates[id];
+                    neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == group[0].heightLvl && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                    ++iterations;
+                }
+                while ((tileToAssign.chunk is not null || neighborInGroup is null) && iterations <= _iterationSteps);
+
+                if (iterations > _iterationSteps)
+                {
+                    QuitProgram(loopStopReason);
+                    return;
+                }
+
+                if (neighborInGroup.x == tileToAssign.x)
+                {
+                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = group[0].heightLvl };
+                    GameObject chunk = lowerChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                    tileToAssign.chunk = chunk;
+                }
+                else
+                {
+                    if (neighborInGroup.x < tileToAssign.x)
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = group[0].heightLvl };
+                        GameObject chunk = lowerChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
+                    else
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = group[0].heightLvl };
+                        GameObject chunk = lowerChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
+                }
+            }
+        }
+    }
+
     private void AssignHoleChunk(WorldTile tile, bool isHorz)
     {
         GameObject chunk;
@@ -316,10 +383,9 @@ public class GenerateWorld : MonoBehaviour
             WorldChunk.ChunkExit oppExit = new() { dir = WorldChunk.Direction.Right, height = tile.heightLvl };
 
             if (
-                tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
+                tileBefore.heightLvl == tile.heightLvl &&
                 (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
-                tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
-                (tileBefore.heightLvl == tile.heightLvl || tileAfter.heightLvl == tile.heightLvl) &&
+                tileAfter.heightLvl == tile.heightLvl &&
                 (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
                 (oppBefore is null || oppBefore.chunk is null || oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppBefore.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit))) &&
                 (oppAfter is null || oppAfter.chunk is null || oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppAfter.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit)))
@@ -346,10 +412,9 @@ public class GenerateWorld : MonoBehaviour
             WorldChunk.ChunkExit oppExit = new() { dir = WorldChunk.Direction.Up, height = tile.heightLvl };
 
             if (
-                tileBefore.heightLvl != WorldChunk.HeightLvl.Void &&
+                tileBefore.heightLvl == tile.heightLvl &&
                 (tileBefore.chunk is null || tileBefore.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
-                tileAfter.heightLvl != WorldChunk.HeightLvl.Void &&
-                (tileBefore.heightLvl == tile.heightLvl || tileAfter.heightLvl == tile.heightLvl) &&
+                tileAfter.heightLvl == tile.heightLvl &&
                 (tileAfter.chunk is null || tileAfter.chunk.GetComponent<WorldChunk>().encounter != WorldChunk.EncounterType.Hole) &&
                 (oppBefore is null || oppBefore.chunk is null || oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppBefore.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppBefore.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit))) &&
                 (oppAfter is null || oppAfter.chunk is null || oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.None || (oppAfter.chunk.GetComponent<WorldChunk>().encounter == WorldChunk.EncounterType.Hole && oppAfter.chunk.GetComponent<WorldChunk>().chunkExits.Contains(oppExit)))
@@ -520,7 +585,7 @@ public class GenerateWorld : MonoBehaviour
 
             //Check to exit loop
             float nb = GetNbTiles(heightToAssign);
-            if (nb / Mathf.Ceil(_2Dgrid.Length * _gridFillPercent) > capPercent)
+            if (Mathf.Abs(nb / Mathf.Ceil(_2Dgrid.Length * _gridFillPercent) - capPercent) <= 0.01)
             {
                 break;
             }
@@ -530,7 +595,7 @@ public class GenerateWorld : MonoBehaviour
         while (iterations < _iterationSteps);
     }
 
-    private void DoubleCheckHeight()
+    private void CheckHeightSurroundings()
     {
         foreach (WorldTile tile in _2Dgrid)
         {
@@ -539,10 +604,9 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
-            //could doublecheck that a summit has an adjacent peak has an adjacent ground here
-
             WorldTile[] neighbors = GetAllNeighbors(tile);
 
+            //Check that a tile isnt surrounded by all higher/voids
             if (tile.heightLvl == WorldChunk.HeightLvl.Ground)
             {
                 if (neighbors.Where(tile => tile.heightLvl != WorldChunk.HeightLvl.Ground).Count() == neighbors.Length)
@@ -569,6 +633,7 @@ public class GenerateWorld : MonoBehaviour
         }
     }
 
+    //Old version
     private void RandomizeWorldHeight()
     {
         bool checkSummit = false;
@@ -698,6 +763,11 @@ public class GenerateWorld : MonoBehaviour
                 }
             }
         }
+
+        foreach (WorldTile tile in _2Dgrid)
+        {
+            _2Dgrid[tile.x, tile.y].visited = false;
+        }
     }
 
     private void PopulateHeightGroup(WorldTile tile, List<WorldTile> group)
@@ -714,6 +784,61 @@ public class GenerateWorld : MonoBehaviour
             }
         }
     }
+
+    private void CheckStrandedGrounds()
+    {
+        bool updatedTiles = false;
+
+        foreach (List<WorldTile> group in _connectedGroundGroupsList)
+        {
+            List<WorldTile> peakNeighbors = new();
+            List<WorldTile> summitNeighbors = new();
+
+            foreach (WorldTile tile in group)
+            {
+                WorldTile[] neighbors = GetAllNeighbors(tile);
+                peakNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && !peakNeighbors.Contains(n)));
+                summitNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && !summitNeighbors.Contains(n)));
+            }
+
+            if (peakNeighbors.Count > 0)
+            {
+                continue;
+            }
+
+            foreach (WorldTile summit in summitNeighbors)
+            {
+                WorldTile[] sNeighbors = GetAllNeighbors(summit);
+                WorldTile[] sGroundNeighbors = sNeighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Ground && n.y >= summit.y).ToArray();
+                WorldTile[] sPeakNeighbors = sNeighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y >= summit.y).ToArray();
+
+                if (sGroundNeighbors.Count() == 0)
+                {
+                    continue;
+                }
+                else if (sPeakNeighbors.Count() > 0)
+                {
+                    _2Dgrid[summit.x, summit.y].heightLvl = WorldChunk.HeightLvl.Ground;
+                    Debug.Log($"{summit.x},{summit.y}");
+                    updatedTiles = true;
+                    break;
+                }
+                else
+                {
+                    _2Dgrid[summit.x, summit.y].heightLvl = WorldChunk.HeightLvl.Peak;
+                    Debug.Log($"{summit.x},{summit.y}");
+                    updatedTiles = true;
+                    break;
+                }
+            }
+        }
+
+        if (updatedTiles)
+        {
+            FindHeightGroups();
+        }
+    }
+
 
     private void LoadPrefabList()
     {
@@ -738,133 +863,32 @@ public class GenerateWorld : MonoBehaviour
         }
     }
 
-    private void GenerateWorldChunks()
+    private void AssignWorldChunks()
     {
-        //Assign climb chunks adjacent to single summits
-        foreach (List<WorldTile> group in _connectedSummitGroupsList.Where(g => g.Count() == 1))
-        {
-            List<WorldTile> lowerNeighbors = new();
+        AssignClimbChunk(_connectedSummitGroupsList.Where(g => g.Count() == 1), _connectedPeakGroupsList, WorldChunk.HeightLvl.Peak, _peakChunks, "being stuck in a loop while assigning chunks near single summits");
+        AssignClimbChunk(_connectedSummitGroupsList.Where(g => g.Count() > 1), _connectedPeakGroupsList, WorldChunk.HeightLvl.Peak, _peakChunks, "being stuck in a loop while assigning chunks near grouped summits");
+        //AssignClimbChunk(_connectedPeakGroupsList.Where(g => g.Count() == 1), _connectedGroundGroupsList, WorldChunk.HeightLvl.Ground, _groundChunks, "being stuck in a loop while assigning chunks near single peaks");
+        //AssignClimbChunk(_connectedPeakGroupsList.Where(g => g.Count() > 1), _connectedGroundGroupsList, WorldChunk.HeightLvl.Ground, _groundChunks, "being stuck in a loop while assigning chunks near grouped peaks");
 
-            foreach (WorldTile tile in group)
-            {
-                WorldTile[] neighbors = GetAllNeighbors(tile);
-                lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && !lowerNeighbors.Contains(n)));
-            }
-
-            if (lowerNeighbors.Count == 0)
-            {
-                continue;
-            }
-
-            int iterations = 0;
-            int id;
-            WorldTile tileToAssign;
-            WorldTile neighborInGroup;
-            
-            do
-            {
-                if (iterations > _iterationSteps)
-                {
-                    QuitProgram("being stuck in a loop while assigning chunks near single summits");
-                }
-
-                id = Random.Range(0, lowerNeighbors.Count);
-                tileToAssign = lowerNeighbors[id];
-                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
-                ++iterations;
-            }
-            while (tileToAssign.chunk is not null || neighborInGroup is null);
-
-            if (neighborInGroup.x == tileToAssign.x)
-            {
-                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Summit };
-                GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                tileToAssign.chunk = chunk;
-            }
-            else
-            {
-                if (neighborInGroup.x < tileToAssign.x)
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-                else
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-            }
-        }
-
-        //Assign climb chunks adjacent to grouped summits
-        foreach (List<WorldTile> group in _connectedSummitGroupsList.Where(g => g.Count() > 1))
-        {
-            List<WorldTile> lowerNeighbors = new();
-
-            foreach (WorldTile tile in group)
-            {
-                WorldTile[] neighbors = GetAllNeighbors(tile);
-                lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && !lowerNeighbors.Contains(n)));
-            }
-
-            if (lowerNeighbors.Count == 0)
-            {
-                continue;
-            }
-
-            int iterations = 0;
-            int id;
-            WorldTile tileToAssign;
-            WorldTile neighborInGroup;
-
-            do
-            {
-                if (iterations > _iterationSteps)
-                {
-                    QuitProgram("being stuck in a loop while assigning chunks near grouped summits");
-                }
-
-                id = Random.Range(0, lowerNeighbors.Count);
-                tileToAssign = lowerNeighbors[id];
-                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Summit && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
-                ++iterations;
-            }
-            while (tileToAssign.chunk is not null || neighborInGroup is null);
-
-            if (neighborInGroup.x == tileToAssign.x)
-            {
-                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Summit };
-                GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                tileToAssign.chunk = chunk;
-            }
-            else
-            {
-                if (neighborInGroup.x < tileToAssign.x)
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-                else
-                {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Summit };
-                    GameObject chunk = _peakChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
-                }
-            }
-        }
 
         //Assign climb chunks adjacent to single peaks
         foreach (List<WorldTile> group in _connectedPeakGroupsList.Where(g => g.Count() == 1))
         {
             List<WorldTile> lowerNeighbors = new();
+            List<List<WorldTile>> neighborGroups = new();
 
             foreach (WorldTile tile in group)
             {
                 WorldTile[] neighbors = GetAllNeighbors(tile);
                 lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Ground && !lowerNeighbors.Contains(n)));
+
+                foreach (WorldTile neighbor in neighbors)
+                {
+                    if (neighbor.heightLvl == WorldChunk.HeightLvl.Ground)
+                    {
+                        neighborGroups.AddRange(_connectedGroundGroupsList.Where(g => g.Contains(neighbor) && !neighborGroups.Contains(g)));
+                    }
+                }
             }
 
             if (lowerNeighbors.Count == 0)
@@ -872,57 +896,72 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
-            int iterations = 0;
-            int id;
-            WorldTile tileToAssign;
-            WorldTile neighborInGroup;
-
-            do
+            foreach (List<WorldTile> ng in neighborGroups)
             {
+                int iterations = 0;
+                int id;
+                WorldTile tileToAssign;
+                WorldTile neighborInGroup;
+                WorldTile[] candidates = lowerNeighbors.Where(n => ng.Contains(n)).ToArray();
+
+                do
+                {
+                    id = Random.Range(0, candidates.Count());
+                    tileToAssign = lowerNeighbors[id];
+                    neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                    ++iterations;
+                }
+                while ((tileToAssign.chunk is not null || neighborInGroup is null) && iterations <= _iterationSteps);
+
                 if (iterations > _iterationSteps)
                 {
                     QuitProgram("being stuck in a loop while assigning chunks near single peaks");
+                    return;
                 }
 
-                id = Random.Range(0, lowerNeighbors.Count);
-                tileToAssign = lowerNeighbors[id];
-                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
-                ++iterations;
-            }
-            while (tileToAssign.chunk is not null || neighborInGroup is null);
-
-            if (neighborInGroup.x == tileToAssign.x)
-            {
-                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
-                GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                tileToAssign.chunk = chunk;
-            }
-            else
-            {
-                if (neighborInGroup.x < tileToAssign.x)
+                if (neighborInGroup.x == tileToAssign.x)
                 {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Peak };
+                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
                     GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
                     tileToAssign.chunk = chunk;
                 }
                 else
                 {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Peak };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
+                    if (neighborInGroup.x < tileToAssign.x)
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Peak };
+                        GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
+                    else
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Peak };
+                        GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
                 }
             }
         }
+
 
         //Assign chunks adjacent to grouped peaks
         foreach (List<WorldTile> group in _connectedPeakGroupsList.Where(g => g.Count() > 1))
         {
             List<WorldTile> lowerNeighbors = new();
+            List<List<WorldTile>> neighborGroups = new();
 
             foreach (WorldTile tile in group)
             {
                 WorldTile[] neighbors = GetAllNeighbors(tile);
                 lowerNeighbors.AddRange(neighbors.Where(n => n.heightLvl == WorldChunk.HeightLvl.Ground && !lowerNeighbors.Contains(n)));
+
+                foreach (WorldTile neighbor in neighbors)
+                {
+                    if (neighbor.heightLvl == WorldChunk.HeightLvl.Ground)
+                    {
+                        neighborGroups.AddRange(_connectedGroundGroupsList.Where(g => g.Contains(neighbor) && !neighborGroups.Contains(g)));
+                    }
+                }
             }
 
             if (lowerNeighbors.Count == 0)
@@ -930,44 +969,49 @@ public class GenerateWorld : MonoBehaviour
                 continue;
             }
 
-            int iterations = 0;
-            int id;
-            WorldTile tileToAssign;
-            WorldTile neighborInGroup;
-
-            do
+            foreach (List<WorldTile> ng in neighborGroups) 
             {
+                int iterations = 0;
+                int id;
+                WorldTile tileToAssign;
+                WorldTile neighborInGroup;
+                WorldTile[] candidates = lowerNeighbors.Where(n => ng.Contains(n)).ToArray();
+
+                do
+                {
+                    id = Random.Range(0, candidates.Count());
+                    tileToAssign = lowerNeighbors[id];
+                    neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
+                    ++iterations;
+                }
+                while ((tileToAssign.chunk is not null || neighborInGroup is null) && iterations <= _iterationSteps);
+
                 if (iterations > _iterationSteps)
                 {
                     QuitProgram("being stuck in a loop while assigning chunks near grouped peaks");
+                    return;
                 }
 
-                id = Random.Range(0, lowerNeighbors.Count);
-                tileToAssign = lowerNeighbors[id];
-                neighborInGroup = GetAllNeighbors(tileToAssign).Where(n => n.heightLvl == WorldChunk.HeightLvl.Peak && n.y <= tileToAssign.y && group.Contains(n)).DefaultIfEmpty(null).First();
-                ++iterations;
-            }
-            while (tileToAssign.chunk is not null || neighborInGroup is null);
-
-            if (neighborInGroup.x == tileToAssign.x)
-            {
-                WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
-                GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                tileToAssign.chunk = chunk;
-            }
-            else
-            {
-                if (neighborInGroup.x < tileToAssign.x)
+                if (neighborInGroup.x == tileToAssign.x)
                 {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Peak };
+                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Up, height = WorldChunk.HeightLvl.Peak };
                     GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
                     tileToAssign.chunk = chunk;
                 }
                 else
                 {
-                    WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Peak };
-                    GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
-                    tileToAssign.chunk = chunk;
+                    if (neighborInGroup.x < tileToAssign.x)
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Left, height = WorldChunk.HeightLvl.Peak };
+                        GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
+                    else
+                    {
+                        WorldChunk.ChunkExit exit = new() { dir = WorldChunk.Direction.Right, height = WorldChunk.HeightLvl.Peak };
+                        GameObject chunk = _groundChunks.Where(c => c.GetComponent<WorldChunk>().chunkExits.Contains(exit)).First();
+                        tileToAssign.chunk = chunk;
+                    }
                 }
             }
         }
@@ -1018,8 +1062,10 @@ public class GenerateWorld : MonoBehaviour
 
             AssignBasicChunk(tile);
         }
+    }
 
-        //Instantiate chunks
+    private void InstantiateChunks()
+    {
         foreach (WorldTile tile in _2Dgrid)
         {
             Instantiate(tile.chunk, new(tile.x * _chunkSize, 0, tile.y * _chunkSize * -1), Quaternion.identity);
